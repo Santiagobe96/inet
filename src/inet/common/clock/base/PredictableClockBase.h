@@ -33,7 +33,8 @@ class INET_API PredictableClockBase : public ClockBase, public IClock
     virtual simtime_t toSimTime(clocktime_t t) const = 0;
 
     virtual clocktime_t getClockTime() const override;
-    virtual void scheduleClockEvent(clocktime_t t, ClockEvent *msg) override;
+    virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) override;
+    virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) override;
     virtual cMessage *cancelClockEvent(ClockEvent *msg) override;
 };
 

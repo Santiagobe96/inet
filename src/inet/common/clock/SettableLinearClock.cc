@@ -34,7 +34,7 @@ clocktime_t SettableLinearClock::getClockTime() const
     return origin.clocktime + ClockTime::from((t-origin.simtime) / (1 + driftRate));
 }
 
-void SettableLinearClock::scheduleClockEvent(clocktime_t t, ClockEvent *msg)
+void SettableLinearClock::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
 {
     simtime_t now = simTime();
     for (auto it = timers.begin(); it != timers.end(); ) {
@@ -52,6 +52,11 @@ void SettableLinearClock::scheduleClockEvent(clocktime_t t, ClockEvent *msg)
     timer.arrivalTime.simtime = origin.simtime + (t - origin.clocktime).asSimTime() * (1 + driftRate);
     timer.module->scheduleAt(timer.arrivalTime.simtime, msg);
     timers.push_back(timer);
+}
+
+void SettableLinearClock::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg)
+{
+    throw cRuntimeError("implementation");
 }
 
 cMessage *SettableLinearClock::cancelClockEvent(ClockEvent *msg)

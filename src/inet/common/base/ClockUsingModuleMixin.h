@@ -46,7 +46,8 @@ class INET_API ClockUsingModuleMixin : public T
 
     virtual void initialize(int stage);
 
-    virtual void scheduleClockEvent(clocktime_t t, ClockEvent *msg);
+    virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg);
+    virtual void scheduleClockEventAfter(clocktime_t delay, ClockEvent *msg);
     virtual cMessage *cancelClockEvent(ClockEvent *msg);
     virtual void cancelAndDeleteClockEvent(ClockEvent *msg);
 

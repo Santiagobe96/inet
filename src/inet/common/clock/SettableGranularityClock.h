@@ -62,7 +62,9 @@ class INET_API SettableGranularityClock : public ClockBase, public IClock, publi
     /**
      * Schedule an event to be delivered to the context module at the given time.
      */
-    virtual void scheduleClockEvent(clocktime_t t, ClockEvent *msg) override;
+    virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) override;
+
+    virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) override;
 
     /**
      * Cancels an event.

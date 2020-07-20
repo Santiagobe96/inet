@@ -38,7 +38,13 @@ class INET_API IClock
     /**
      * Schedule an event to be delivered to the context module at the given time.
      */
-    virtual void scheduleClockEvent(clocktime_t t, ClockEvent *msg) = 0;
+    virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) = 0;
+
+    /**
+     * Schedule an event to be delivered to the context module at the given
+     * time delta after the current simulation time.
+     */
+    virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) = 0;
 
     /**
      * Cancels an event.

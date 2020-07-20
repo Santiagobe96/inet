@@ -34,7 +34,7 @@ clocktime_t SettableGranularityClock::getClockTime() const
     return fromSimTime(t);
 }
 
-void SettableGranularityClock::scheduleClockEvent(clocktime_t t, ClockEvent *msg)
+void SettableGranularityClock::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
 {
     simtime_t now = simTime();
     for (auto it = timers.begin(); it != timers.end(); ) {
@@ -53,6 +53,11 @@ void SettableGranularityClock::scheduleClockEvent(clocktime_t t, ClockEvent *msg
     timer.arrivalTime.simtime = toSimTime(t);
     timer.module->scheduleAt(timer.arrivalTime.simtime, msg);
     timers.push_back(timer);
+}
+
+void SettableGranularityClock::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg)
+{
+    throw cRuntimeError("implementation");
 }
 
 cMessage *SettableGranularityClock::cancelClockEvent(ClockEvent *msg)

@@ -22,9 +22,17 @@ clocktime_t PredictableClockBase::getClockTime() const
     return fromSimTime(simTime());
 }
 
-void PredictableClockBase::scheduleClockEvent(clocktime_t t, ClockEvent *msg)
+void PredictableClockBase::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
 {
+    msg->setRelative(false);
     getTargetModule()->scheduleAt(toSimTime(t), msg);
+}
+
+void PredictableClockBase::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg)
+{
+    simtime_t delay = toSimTime(getClockTime() + t) - simTime();
+    msg->setRelative(true);
+    getTargetModule()->scheduleAfter(delay, msg);
 }
 
 cMessage *PredictableClockBase::cancelClockEvent(ClockEvent *msg)

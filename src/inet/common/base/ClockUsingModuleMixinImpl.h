@@ -68,14 +68,25 @@ void ClockUsingModuleMixin<T>::initialize(int stage) {
 }
 
 template<typename T>
-void ClockUsingModuleMixin<T>::scheduleClockEvent(clocktime_t t, ClockEvent *msg) {
+void ClockUsingModuleMixin<T>::scheduleClockEventAt(clocktime_t t, ClockEvent *msg) {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif
     if (clock != nullptr)
-        clock->scheduleClockEvent(t, msg);
+        clock->scheduleClockEventAt(t, msg);
     else
         T::scheduleAt(t.asSimTime(), msg);
+}
+
+template<typename T>
+void ClockUsingModuleMixin<T>::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) {
+#ifndef NDEBUG
+    usedClockApi = true;
+#endif
+    if (clock != nullptr)
+        clock->scheduleClockEventAfter(t, msg);
+    else
+        T::scheduleAfter(t.asSimTime(), msg);
 }
 
 template<typename T>
