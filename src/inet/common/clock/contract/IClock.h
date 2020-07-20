@@ -17,6 +17,7 @@
 #define __INET_ICLOCK_H
 
 #include "inet/common/clock/common/ClockTime.h"
+#include "inet/common/clock/common/ClockEvent_m.h"
 
 namespace inet {
 
@@ -37,17 +38,17 @@ class INET_API IClock
     /**
      * Schedule an event to be delivered to the context module at the given time.
      */
-    virtual void scheduleClockEvent(clocktime_t t, cMessage *msg) = 0;
+    virtual void scheduleClockEvent(clocktime_t t, ClockEvent *msg) = 0;
 
     /**
      * Cancels an event.
      */
-    virtual cMessage *cancelClockEvent(cMessage *msg) = 0;
+    virtual cMessage *cancelClockEvent(ClockEvent *msg) = 0;
 
     /**
      * Returns the arrival time of a message scheduled via scheduleClockEvent().
      */
-    virtual clocktime_t getArrivalClockTime(cMessage *msg) const = 0;
+    virtual clocktime_t getArrivalClockTime(ClockEvent *msg) const = 0;
 };
 
 } // namespace inet

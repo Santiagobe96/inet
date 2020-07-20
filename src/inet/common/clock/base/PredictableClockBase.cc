@@ -22,12 +22,12 @@ clocktime_t PredictableClockBase::getClockTime() const
     return fromSimTime(simTime());
 }
 
-void PredictableClockBase::scheduleClockEvent(clocktime_t t, cMessage *msg)
+void PredictableClockBase::scheduleClockEvent(clocktime_t t, ClockEvent *msg)
 {
     getTargetModule()->scheduleAt(toSimTime(t), msg);
 }
 
-cMessage *PredictableClockBase::cancelClockEvent(cMessage *msg)
+cMessage *PredictableClockBase::cancelClockEvent(ClockEvent *msg)
 {
     return getTargetModule()->cancelEvent(msg);
 }

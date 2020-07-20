@@ -68,7 +68,7 @@ void ClockUsingModuleMixin<T>::initialize(int stage) {
 }
 
 template<typename T>
-void ClockUsingModuleMixin<T>::scheduleClockEvent(clocktime_t t, cMessage *msg) {
+void ClockUsingModuleMixin<T>::scheduleClockEvent(clocktime_t t, ClockEvent *msg) {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif
@@ -79,7 +79,7 @@ void ClockUsingModuleMixin<T>::scheduleClockEvent(clocktime_t t, cMessage *msg) 
 }
 
 template<typename T>
-cMessage *ClockUsingModuleMixin<T>::cancelClockEvent(cMessage *msg) {
+cMessage *ClockUsingModuleMixin<T>::cancelClockEvent(ClockEvent *msg) {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif
@@ -90,7 +90,7 @@ cMessage *ClockUsingModuleMixin<T>::cancelClockEvent(cMessage *msg) {
 }
 
 template<typename T>
-void ClockUsingModuleMixin<T>::cancelAndDeleteClockEvent(cMessage *msg) {
+void ClockUsingModuleMixin<T>::cancelAndDeleteClockEvent(ClockEvent *msg) {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif
@@ -112,7 +112,7 @@ clocktime_t ClockUsingModuleMixin<T>::getClockTime() const {
 }
 
 template<typename T>
-clocktime_t ClockUsingModuleMixin<T>::getArrivalClockTime(cMessage *msg) const {
+clocktime_t ClockUsingModuleMixin<T>::getArrivalClockTime(ClockEvent *msg) const {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif

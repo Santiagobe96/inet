@@ -46,12 +46,12 @@ class INET_API ClockUsingModuleMixin : public T
 
     virtual void initialize(int stage);
 
-    virtual void scheduleClockEvent(clocktime_t t, cMessage *msg);
-    virtual cMessage *cancelClockEvent(cMessage *msg);
-    virtual void cancelAndDeleteClockEvent(cMessage *msg);
+    virtual void scheduleClockEvent(clocktime_t t, ClockEvent *msg);
+    virtual cMessage *cancelClockEvent(ClockEvent *msg);
+    virtual void cancelAndDeleteClockEvent(ClockEvent *msg);
 
     virtual clocktime_t getClockTime() const;
-    virtual clocktime_t getArrivalClockTime(cMessage *msg) const;
+    virtual clocktime_t getArrivalClockTime(ClockEvent *msg) const;
 
     using T::uniform;
     using T::exponential;
@@ -63,11 +63,11 @@ class INET_API ClockUsingModuleMixin : public T
     virtual ClockTime truncnormal(ClockTime mean, ClockTime stddev, int rng=0) const  {return truncnormal(mean.dbl(), stddev.dbl(), rng);}
 #else // #ifdef WITH_CLOCK_SUPPORT
   public:
-    virtual void scheduleClockEvent(clocktime_t t, cMessage *msg) { T::scheduleAt(t, msg); }
-    virtual cMessage *cancelClockEvent(cMessage *msg) { return T::cancelEvent(msg); }
-    virtual void cancelAndDeleteClockEvent(cMessage *msg) { T::cancelAndDelete(msg); }
+    virtual void scheduleClockEvent(clocktime_t t, ClockEvent *msg) { T::scheduleAt(t, msg); }
+    virtual cMessage *cancelClockEvent(ClockEvent *msg) { return T::cancelEvent(msg); }
+    virtual void cancelAndDeleteClockEvent(ClockEvent *msg) { T::cancelAndDelete(msg); }
     virtual clocktime_t getClockTime() const { return simTime(); }
-    virtual clocktime_t getArrivalClockTime(cMessage *msg) const { return msg->getArrivalTime(); }
+    virtual clocktime_t getArrivalClockTime(ClockEvent *msg) const { return msg->getArrivalTime(); }
 #endif // #ifdef WITH_CLOCK_SUPPORT
 };
 

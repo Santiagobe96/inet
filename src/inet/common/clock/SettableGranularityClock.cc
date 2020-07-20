@@ -34,7 +34,7 @@ clocktime_t SettableGranularityClock::getClockTime() const
     return fromSimTime(t);
 }
 
-void SettableGranularityClock::scheduleClockEvent(clocktime_t t, cMessage *msg)
+void SettableGranularityClock::scheduleClockEvent(clocktime_t t, ClockEvent *msg)
 {
     simtime_t now = simTime();
     for (auto it = timers.begin(); it != timers.end(); ) {
@@ -55,7 +55,7 @@ void SettableGranularityClock::scheduleClockEvent(clocktime_t t, cMessage *msg)
     timers.push_back(timer);
 }
 
-cMessage *SettableGranularityClock::cancelClockEvent(cMessage *msg)
+cMessage *SettableGranularityClock::cancelClockEvent(ClockEvent *msg)
 {
     simtime_t now = simTime();
     for (auto it = timers.begin(); it != timers.end(); ) {
@@ -67,7 +67,7 @@ cMessage *SettableGranularityClock::cancelClockEvent(cMessage *msg)
     return getTargetModule()->cancelEvent(msg);
 }
 
-clocktime_t SettableGranularityClock::getArrivalClockTime(cMessage *msg) const
+clocktime_t SettableGranularityClock::getArrivalClockTime(ClockEvent *msg) const
 {
     return fromSimTime(msg->getArrivalTime()); // note: imprecision due to conversion to simtime and forth
 }

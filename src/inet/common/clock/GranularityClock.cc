@@ -44,7 +44,7 @@ simtime_t GranularityClock::toSimTime(clocktime_t clock) const
     return SimTime().setRaw(((clock.raw() + granularityRaw - 1) / granularityRaw) * granularityRaw) * (1.0 + driftRate) + timeShift;
 }
 
-clocktime_t GranularityClock::getArrivalClockTime(cMessage *msg) const
+clocktime_t GranularityClock::getArrivalClockTime(ClockEvent *msg) const
 {
     return fromSimTime(msg->getArrivalTime()); // note: imprecision due to conversion to simtime and forth
 }

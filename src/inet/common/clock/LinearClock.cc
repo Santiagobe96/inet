@@ -35,7 +35,7 @@ simtime_t LinearClock::toSimTime(clocktime_t clock) const
     return clock.asSimTime() * (1 + driftRate) + timeShift;
 }
 
-clocktime_t LinearClock::getArrivalClockTime(cMessage *msg) const
+clocktime_t LinearClock::getArrivalClockTime(ClockEvent *msg) const
 {
     return fromSimTime(msg->getArrivalTime()); // note: imprecision due to conversion to simtime and forth
 }

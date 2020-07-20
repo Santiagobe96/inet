@@ -36,7 +36,7 @@ class INET_API GranularityClock : public PredictableClockBase
     virtual void initialize() override;
     virtual clocktime_t fromSimTime(simtime_t t) const override;
     virtual simtime_t toSimTime(clocktime_t t) const override;
-    virtual clocktime_t getArrivalClockTime(cMessage *msg) const override; // note: imprecise (may not be exactly equal to clocktime passed into scheduleClockEvent())
+    virtual clocktime_t getArrivalClockTime(ClockEvent *msg) const override; // note: imprecise (may not be exactly equal to clocktime passed into scheduleClockEvent())
 };
 
 } // namespace inet

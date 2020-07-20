@@ -59,17 +59,17 @@ class INET_API SettableLinearClock : public ClockBase, public IClock, public ISc
     /**
      * Schedule an event to be delivered to the context module at the given time.
      */
-    virtual void scheduleClockEvent(clocktime_t t, cMessage *msg) override;
+    virtual void scheduleClockEvent(clocktime_t t, ClockEvent *msg) override;
 
     /**
      * Cancels an event.
      */
-    virtual cMessage *cancelClockEvent(cMessage *msg) override;
+    virtual cMessage *cancelClockEvent(ClockEvent *msg) override;
 
     /**
      * Returns the arrival time of a message scheduled via scheduleClockEvent().
      */
-    virtual clocktime_t getArrivalClockTime(cMessage *msg) const override;
+    virtual clocktime_t getArrivalClockTime(ClockEvent *msg) const override;
 
     virtual void setDriftRate(double newDriftRate);
 
