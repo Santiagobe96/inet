@@ -54,7 +54,7 @@ void UdpBasicApp::initialize(int stage)
         dontFragment = par("dontFragment");
         if (stopTime >= CLOCKTIME_ZERO && stopTime < startTime)
             throw cRuntimeError("Invalid startTime/stopTime parameters");
-        selfMsg = new cMessage("sendTimer");
+        selfMsg = new ClockEvent("sendTimer");
     }
 }
 
