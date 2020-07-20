@@ -154,7 +154,7 @@ void UdpBasicApp::processStart()
     else {
         if (stopTime >= CLOCKTIME_ZERO) {
             selfMsg->setKind(STOP);
-            scheduleClockEvent(stopTime, selfMsg);
+            scheduleClockEventAt(stopTime, selfMsg);
         }
     }
 }
@@ -162,14 +162,14 @@ void UdpBasicApp::processStart()
 void UdpBasicApp::processSend()
 {
     sendPacket();
-    clocktime_t d = getClockTime() + par("sendInterval");
-    if (stopTime < CLOCKTIME_ZERO || d < stopTime) {
+    clocktime_t d = par("sendInterval");
+    if (stopTime < CLOCKTIME_ZERO || getClockTime() + d < stopTime) {
         selfMsg->setKind(SEND);
-        scheduleClockEvent(d, selfMsg);
+        scheduleClockEventAfter(d, selfMsg);
     }
     else {
         selfMsg->setKind(STOP);
-        scheduleClockEvent(stopTime, selfMsg);
+        scheduleClockEventAfter(stopTime, selfMsg);
     }
 }
 
@@ -243,7 +243,7 @@ void UdpBasicApp::handleStartOperation(LifecycleOperation *operation)
     clocktime_t start = std::max(startTime, getClockTime());
     if ((stopTime < CLOCKTIME_ZERO) || (start < stopTime) || (start == stopTime && startTime == stopTime)) {
         selfMsg->setKind(START);
-        scheduleClockEvent(start, selfMsg);
+        scheduleClockEventAt(start, selfMsg);
     }
 }
 
