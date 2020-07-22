@@ -16,6 +16,7 @@
 //
 
 #include "inet/common/base/ClockUsingModuleMixinImpl.h"
+#include "inet/common/lifecycle/OperationalMixin.h"
 #include "inet/queueing/base/PacketGateBase.h"
 #include "inet/queueing/base/PacketProcessorBase.h"
 #include "inet/queueing/base/PacketPusherBase.h"
@@ -29,6 +30,7 @@ template class ClockUsingModuleMixin<cSimpleModule>;
 template class ClockUsingModuleMixin<queueing::PacketProcessorBase>;
 template class ClockUsingModuleMixin<queueing::PacketPusherBase>;
 template class ClockUsingModuleMixin<queueing::PacketGateBase>;
+template class ClockUsingModuleMixin<OperationalMixin<queueing::PacketProcessorBase>>;
 #endif // #ifdef WITH_QUEUEING
 
 #endif // #ifdef WITH_CLOCK_SUPPORT
