@@ -29,10 +29,5 @@ simtime_t IdealClock::toSimTime(clocktime_t clock) const
     return clock.asSimTime();
 }
 
-clocktime_t IdealClock::getArrivalClockTime(ClockEvent *msg) const
-{
-    return ClockTime::from(msg->getArrivalTime());
-}
-
 } // namespace inet
 

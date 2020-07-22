@@ -72,11 +72,6 @@ cMessage *SettableGranularityClock::cancelClockEvent(ClockEvent *msg)
     return getTargetModule()->cancelEvent(msg);
 }
 
-clocktime_t SettableGranularityClock::getArrivalClockTime(ClockEvent *msg) const
-{
-    return fromSimTime(msg->getArrivalTime()); // note: imprecision due to conversion to simtime and forth
-}
-
 void SettableGranularityClock::purgeTimers()
 {
     simtime_t now = simTime();

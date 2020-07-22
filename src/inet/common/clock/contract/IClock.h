@@ -52,9 +52,9 @@ class INET_API IClock
     virtual cMessage *cancelClockEvent(ClockEvent *msg) = 0;
 
     /**
-     * Returns the arrival time of a message scheduled via scheduleClockEvent().
+     * notification about msg arrived to a cSimpleModule.
      */
-    virtual clocktime_t getArrivalClockTime(ClockEvent *msg) const = 0;
+    virtual void arrived(ClockEvent *msg) = 0;
 };
 
 } // namespace inet

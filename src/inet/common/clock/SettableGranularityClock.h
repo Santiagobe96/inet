@@ -54,27 +54,14 @@ class INET_API SettableGranularityClock : public ClockBase, public IClock, publi
   public:
     virtual void initialize() override;
 
-    /**
-     * Return the current time.
-     */
     virtual clocktime_t getClockTime() const override;
-
-    /**
-     * Schedule an event to be delivered to the context module at the given time.
-     */
     virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) override;
-
     virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) override;
-
-    /**
-     * Cancels an event.
-     */
     virtual cMessage *cancelClockEvent(ClockEvent *msg) override;
-
-    /**
-     * Returns the arrival time of a message scheduled via scheduleClockEvent().
-     */
-    virtual clocktime_t getArrivalClockTime(ClockEvent *msg) const override;
+    void arrived(ClockEvent *msg) override
+    {
+        msg->setClockModule(nullptr);
+    }
 
     virtual void setDriftRate(double newDriftRate);
     virtual void setClockTime(clocktime_t t);

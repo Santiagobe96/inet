@@ -29,7 +29,6 @@ class INET_API ClockBase : public cSimpleModule
             throw cRuntimeError("scheduleAt()/cancelEvent() must be called with a simple module in context");
         return target;
     }
-
 };
 
 } // namespace inet

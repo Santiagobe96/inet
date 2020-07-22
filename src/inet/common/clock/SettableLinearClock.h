@@ -16,8 +16,7 @@
 #ifndef __INET_SettableLinearClock_H
 #define __INET_SettableLinearClock_H
 
-#include "inet/common/clock/base/ClockBase.h"
-#include "inet/common/clock/contract/IClock.h"
+#include "inet/common/clock/LinearClock.h"
 #include "inet/common/scenario/IScriptable.h"
 
 namespace inet {
@@ -25,25 +24,14 @@ namespace inet {
 /**
  * Models a clock with a constant clock drift rate.
  */
-class INET_API SettableLinearClock : public ClockBase, public IClock, public IScriptable
+class INET_API SettableLinearClock : public LinearClock, public IScriptable
 {
   private:
-    struct TimePair {
-        simtime_t simtime;
-        clocktime_t clocktime;
-    };
-    struct Timer {
-        cSimpleModule *module;
-        cMessage *msg;
-        TimePair arrivalTime;
-    };
-    TimePair origin;
-    double driftRate;
-    std::vector<Timer> timers;
+    std::vector<ClockEvent*> timers;
 
   protected:
     void purgeTimers();
-    void rescheduleTimers();
+    void rescheduleTimers(clocktime_t clockDelta);
 
     // IScriptable implementation
     virtual void processCommand(const cXMLElement& node) override;
@@ -51,31 +39,14 @@ class INET_API SettableLinearClock : public ClockBase, public IClock, public ISc
   public:
     virtual void initialize() override;
 
-    /**
-     * Return the current time.
-     */
-    virtual clocktime_t getClockTime() const override;
-
-    /**
-     * Schedule an event to be delivered to the context module at the given time.
-     */
     virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) override;
-
     virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) override;
-
-    /**
-     * Cancels an event.
-     */
     virtual cMessage *cancelClockEvent(ClockEvent *msg) override;
 
-    /**
-     * Returns the arrival time of a message scheduled via scheduleClockEvent().
-     */
-    virtual clocktime_t getArrivalClockTime(ClockEvent *msg) const override;
-
     virtual void setDriftRate(double newDriftRate);
-
     virtual void setClockTime(clocktime_t t);
+
+    void arrived(ClockEvent *msg) override;
 };
 
 } // namespace inet

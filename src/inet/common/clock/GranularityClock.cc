@@ -23,30 +23,80 @@ Define_Module(GranularityClock);
 
 void GranularityClock::initialize()
 {
-    timeShift = par("timeShift");
     granularity = par("granularity");
     if (granularity < CLOCKTIME_ZERO)
         throw cRuntimeError("incorrect granularity value: %s, granularity must be 0 or positive value", granularity.str().c_str());
     if (granularity == CLOCKTIME_ZERO)
         granularity.setRaw(1);
+    granularityRaw = granularity.raw();
     driftRate = par("driftRate").doubleValue() / 1e6;
+    origin.simtime = simTime();
+    simtime_t clock = par("timeShift");
+    origin.clocktime = ClockTime::from(simTime() + clock);
 }
 
-clocktime_t GranularityClock::fromSimTime(simtime_t t) const
+clocktime_t GranularityClock::granularize(clocktime_t clock) const
 {
-    auto granularityRaw = granularity.raw();
-    return ClockTime::from(SimTime().setRaw((t-timeShift / (1.0 + driftRate)).raw() / granularityRaw) * granularityRaw);
+    return ClockTime().setRaw((clock.raw() / granularityRaw) * granularityRaw);
+}
+
+clocktime_t GranularityClock::granularizeUp(clocktime_t clock) const
+{
+    return ClockTime().setRaw(((clock.raw() + granularityRaw - 1) / granularityRaw) * granularityRaw);
 }
 
 simtime_t GranularityClock::toSimTime(clocktime_t clock) const
 {
-    auto granularityRaw = granularity.raw();
-    return SimTime().setRaw(((clock.raw() + granularityRaw - 1) / granularityRaw) * granularityRaw) * (1.0 + driftRate) + timeShift;
+    return origin.simtime + (granularize(clock) - origin.clocktime).asSimTime() * (1.0 + driftRate);
 }
 
-clocktime_t GranularityClock::getArrivalClockTime(ClockEvent *msg) const
+clocktime_t GranularityClock::fromSimTime(simtime_t t) const
 {
-    return fromSimTime(msg->getArrivalTime()); // note: imprecision due to conversion to simtime and forth
+    return granularize(origin.clocktime + ClockTime::from((t-origin.simtime) / (1.0 + driftRate)));
+}
+
+clocktime_t GranularityClock::getClockTime() const
+{
+    return fromSimTime(simTime());
+}
+
+void GranularityClock::scheduleClockEventAt(clocktime_t clock, ClockEvent *msg)
+{
+    msg->setRelative(false);
+    msg->setArrivalClockTime(clock);
+    simtime_t now = simTime();
+    simtime_t t;
+    t = toSimTime(granularizeUp(clock));
+    if (t < now) {
+        clocktime_t nowClock = getClockTime();
+        if (clock >= nowClock && clock < nowClock + granularity) {
+            t = now;
+        }
+    }
+    getTargetModule()->scheduleAt(t, msg);
+}
+
+void GranularityClock::scheduleClockEventAfter(clocktime_t clockDelay, ClockEvent *msg)
+{
+    msg->setRelative(true);
+    clocktime_t nowClock = getClockTime();
+    clocktime_t arrivalClockTime = nowClock + granularizeUp(clockDelay);
+    msg->setArrivalClockTime(arrivalClockTime);
+    simtime_t delay = SIMTIME_ZERO;
+    if (! clockDelay.isZero())
+        delay = toSimTime(arrivalClockTime) - simTime();
+    getTargetModule()->scheduleAfter(delay, msg);
+}
+
+cMessage *GranularityClock::cancelClockEvent(ClockEvent *msg)
+{
+    return getTargetModule()->cancelEvent(msg);
+}
+
+void GranularityClock::arrived(ClockEvent *msg)
+{
+    msg->setSchedulerModule(nullptr);
+    msg->setClockModule(nullptr);
 }
 
 } // namespace inet

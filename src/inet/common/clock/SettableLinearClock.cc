@@ -13,6 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
+#include<bits/stdc++.h>
+
 #include "inet/common/clock/SettableLinearClock.h"
 
 namespace inet {
@@ -21,115 +23,80 @@ Define_Module(SettableLinearClock);
 
 void SettableLinearClock::initialize()
 {
-    driftRate = 0.0;
-    origin.simtime = simTime();
-    simtime_t clock = par("timeShift");
-    origin.clocktime = ClockTime::from(simTime() + clock);
-    driftRate = par("driftRate").doubleValue() / 1e6;
-}
-
-clocktime_t SettableLinearClock::getClockTime() const
-{
-    simtime_t t = simTime();
-    return origin.clocktime + ClockTime::from((t-origin.simtime) / (1 + driftRate));
+    LinearClock::initialize();
 }
 
 void SettableLinearClock::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
 {
-    simtime_t now = simTime();
-    for (auto it = timers.begin(); it != timers.end(); ) {
-        if (it->arrivalTime.simtime <= now)
-            it = timers.erase(it);
-        else {
-            ASSERT(it->msg != msg);
-            ++it;
-        }
-    }
-    Timer timer;
-    timer.module = getTargetModule();
-    timer.msg = msg;
-    timer.arrivalTime.clocktime = t;
-    timer.arrivalTime.simtime = origin.simtime + (t - origin.clocktime).asSimTime() * (1 + driftRate);
-    timer.module->scheduleAt(timer.arrivalTime.simtime, msg);
-    timers.push_back(timer);
+    LinearClock::scheduleClockEventAt(t, msg);
+    timers.push_back(msg);
 }
 
 void SettableLinearClock::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg)
 {
-    throw cRuntimeError("implementation");
+    LinearClock::scheduleClockEventAfter(t, msg);
+    timers.push_back(msg);
 }
 
 cMessage *SettableLinearClock::cancelClockEvent(ClockEvent *msg)
 {
-    simtime_t now = simTime();
-    for (auto it = timers.begin(); it != timers.end(); ) {
-        if (it->arrivalTime.simtime <= now || it->msg == msg)
-            it = timers.erase(it);
-        else
-            ++it;
-    }
+    std::remove(timers.begin(), timers.end(), msg);
     return getTargetModule()->cancelEvent(msg);
 }
 
-clocktime_t SettableLinearClock::getArrivalClockTime(ClockEvent *msg) const
-{
-    ASSERT(msg->isScheduled());
-    for (auto timer : timers) {
-        if (timer.msg == msg)
-            return timer.arrivalTime.clocktime;
-    }
-    throw cRuntimeError("Message not found in Timer vector");
-}
-
-void SettableLinearClock::purgeTimers()
+void SettableLinearClock::rescheduleTimers(clocktime_t clockDelta)
 {
     simtime_t now = simTime();
-    for (auto it = timers.begin(); it != timers.end(); ) {
-        if (it->arrivalTime.simtime <= now)
-            it = timers.erase(it);
-        else
-            ++it;
-    }
-}
-
-void SettableLinearClock::rescheduleTimers()
-{
-    simtime_t now = simTime();
-    for (auto it = timers.begin(); it != timers.end(); ) {
-        if (it->arrivalTime.simtime <= now)
-            it = timers.erase(it);
-        else {
-            simtime_t st = origin.simtime + (it->arrivalTime.clocktime - origin.clocktime).asSimTime() * (1 + driftRate);
-            if (st < now)
-                st = now;
+    clocktime_t nowClock = getClockTime();
+    for (auto it: timers) {
+        cSimpleModule *targetModule = const_cast<cSimpleModule *>(it->getSchedulerModule());
+        if (it->getRelative()) {
+            it->setArrivalClockTime(it->getArrivalClockTime() + clockDelta);
+            simtime_t newDelta = toSimTime(it->getArrivalClockTime()) - now;
             {
-                cContextSwitcher tmp(it->module);
-                it->module->cancelEvent(it->msg);
-                it->module->scheduleAt(st, it->msg);
-                it->arrivalTime.simtime = st;
+                cContextSwitcher tmp(targetModule);
+                targetModule->rescheduleAfter(newDelta, it);
             }
-            ++it;
+        }
+        else {
+            clocktime_t ct = it->getArrivalClockTime();
+            if (ct < nowClock)
+                ct = nowClock;  //TODO or cancel event or notify scheduler module?
+            simtime_t newTime = toSimTime(ct);
+            {
+                cContextSwitcher tmp(targetModule);
+                targetModule->rescheduleAt(newTime, it);
+            }
         }
     }
 }
 
 void SettableLinearClock::setDriftRate(double newDriftRate)
 {
+    simtime_t now = simTime();
+    clocktime_t nowClock = getClockTime();
+    EV_DEBUG << "set driftRate from " << driftRate << " to " << newDriftRate << " at simtime " << now << ", clock " << nowClock << endl;
+    // modify 'origin' to current values before change the driftRate
+    origin.simtime = now;
+    origin.clocktime = nowClock;
     driftRate = newDriftRate;
-    EV_DEBUG << "set driftRate to " << driftRate << " at " << simTime() << endl;
-    rescheduleTimers();
+    rescheduleTimers(CLOCKTIME_ZERO);
 }
 
 void SettableLinearClock::setClockTime(clocktime_t t)
 {
-    origin.simtime = simTime();
+    simtime_t now = simTime();
+    clocktime_t oldClock = getClockTime();
+    EV_DEBUG << "set clock time from " << oldClock << " to " << t << " at simtime " << now << endl;
+    origin.simtime = now;
     origin.clocktime = t;
-    EV_DEBUG << "set clock time to " << origin.clocktime << " at " << origin.simtime << endl;
-    rescheduleTimers();
+    rescheduleTimers(t - oldClock);
 }
 
 void SettableLinearClock::processCommand(const cXMLElement& node)
 {
+    Enter_Method("processCommand");
+
     if (!strcmp(node.getTagName(), "set-clock")) {
         if (const char *clockTimeStr = node.getAttribute("time")) {
             EV_DEBUG << "processCommand: set clock time to " << clockTimeStr << endl;
@@ -146,6 +113,11 @@ void SettableLinearClock::processCommand(const cXMLElement& node)
         throw cRuntimeError("invalid command node for %s at %s", getClassName(), node.getSourceLocation());
 }
 
+void SettableLinearClock::arrived(ClockEvent *msg)
+{
+    LinearClock::arrived(msg);
+    std::remove(timers.begin(), timers.end(), msg);
+}
 
 } // namespace inet
 

@@ -128,7 +128,7 @@ clocktime_t ClockUsingModuleMixin<T>::getArrivalClockTime(ClockEvent *msg) const
     usedClockApi = true;
 #endif
     if (clock != nullptr)
-        return clock->getArrivalClockTime(msg);
+        return msg->getArrivalClockTime();
     else
         return ClockTime::from(msg->getArrivalTime());
 }

@@ -21,23 +21,20 @@ Define_Module(LinearClock);
 
 void LinearClock::initialize()
 {
-    timeShift = par("timeShift");
+    origin.simtime = simTime();
+    simtime_t clock = par("timeShift");
+    origin.clocktime = ClockTime::from(simTime() + clock);
     driftRate = par("driftRate").doubleValue() / 1e6;
 }
 
 clocktime_t LinearClock::fromSimTime(simtime_t t) const
 {
-    return ClockTime::from((t-timeShift) / (1 + driftRate));
+    return origin.clocktime + ClockTime::from((t - origin.simtime) * (1.0 + driftRate));
 }
 
 simtime_t LinearClock::toSimTime(clocktime_t clock) const
 {
-    return clock.asSimTime() * (1 + driftRate) + timeShift;
-}
-
-clocktime_t LinearClock::getArrivalClockTime(ClockEvent *msg) const
-{
-    return fromSimTime(msg->getArrivalTime()); // note: imprecision due to conversion to simtime and forth
+    return origin.simtime + (clock - origin.clocktime).asSimTime() / (1.0 + driftRate);
 }
 
 } // namespace inet

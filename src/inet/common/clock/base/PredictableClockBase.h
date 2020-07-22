@@ -36,6 +36,7 @@ class INET_API PredictableClockBase : public ClockBase, public IClock
     virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) override;
     virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) override;
     virtual cMessage *cancelClockEvent(ClockEvent *msg) override;
+    virtual void arrived(ClockEvent *msg) override;
 };
 
 } // namespace inet

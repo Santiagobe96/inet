@@ -24,22 +24,36 @@ clocktime_t PredictableClockBase::getClockTime() const
 
 void PredictableClockBase::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
 {
+    cSimpleModule *targetModule = getTargetModule();
+    msg->setSchedulerModule(targetModule);
+    msg->setClockModule(this);
     msg->setRelative(false);
-    getTargetModule()->scheduleAt(toSimTime(t), msg);
+    msg->setArrivalClockTime(t);
+    targetModule->scheduleAt(toSimTime(t), msg);
 }
 
 void PredictableClockBase::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg)
 {
-    simtime_t delay = toSimTime(getClockTime() + t) - simTime();
+    cSimpleModule *targetModule = getTargetModule();
+    msg->setSchedulerModule(targetModule);
+    msg->setClockModule(this);
     msg->setRelative(true);
-    getTargetModule()->scheduleAfter(delay, msg);
+    msg->setArrivalClockTime(getClockTime() + t);
+    targetModule->scheduleAfter(toSimTime(msg->getArrivalClockTime()) - simTime(), msg);
 }
 
 cMessage *PredictableClockBase::cancelClockEvent(ClockEvent *msg)
 {
+    msg->setSchedulerModule(nullptr);
+    msg->setClockModule(nullptr);
     return getTargetModule()->cancelEvent(msg);
 }
 
+void PredictableClockBase::arrived(ClockEvent *msg)
+{
+    msg->setSchedulerModule(nullptr);
+    msg->setClockModule(nullptr);
+}
 
 } // namespace inet
 
