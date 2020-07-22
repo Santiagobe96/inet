@@ -44,7 +44,7 @@ class INET_API ClockUsingModuleMixin : public T
   public:
     virtual ~ClockUsingModuleMixin();
 
-    virtual void initialize(int stage);
+    virtual void initialize(int stage) override;
 
     virtual void scheduleClockEvent(clocktime_t t, cMessage *msg);
     virtual cMessage *cancelClockEvent(cMessage *msg);
