@@ -1,0 +1,40 @@
+%description:
+Tests SettableLinearClock:
+
+%#--------------------------------------------------------------------------------------------------------------
+%inifile: omnetpp.ini
+[General]
+ned-path = .;../../../../src;../../lib
+network = inet.test.unittest.lib.ClockTestNetwork
+cmdenv-express-mode = false
+cmdenv-log-prefix = "C:%C: "
+
+*.host.clock.typename = "SettableLinearClock"
+*.host.clock.timeShift = 1s
+*.host.clock.driftRate = -0.5e6 ppm
+*.scenarioManager.script = xml('<scenario><set-clock t="2.5s" module="host.clock" driftRate="0 ppm"/></scenario>')
+%#--------------------------------------------------------------------------------------------------------------
+%postrun-command: grep "^C:" test.out > clock.out || true
+%#--------------------------------------------------------------------------------------------------------------
+%contains: clock.out
+C:(ClockTestApp)ClockTestNetwork.host.app: start
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 1.1, scheduled simtime: 0.2, scheduled clock: 1.1
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 2.11, scheduled simtime: 2.22, scheduled clock: 2.11
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 2.89, scheduled simtime: 3.78, scheduled clock: 2.89
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 2.9999999, scheduled simtime: 3.9999998, scheduled clock: 2.9999999
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 3.11, scheduled simtime: 4.22, scheduled clock: 3.11
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 0.2, clock: 1.1
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 2.22, clock: 2.11
+C:(ScenarioManager)ClockTestNetwork.scenarioManager: processing <set-clock> command...
+C:(SettableLinearClock)ClockTestNetwork.host.clock: processCommand: set drift rate to 0 ppm
+C:(SettableLinearClock)ClockTestNetwork.host.clock: set driftRate from -0.5 to 0 at simtime 2.5, clock 2.25
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 3.14, clock: 2.89
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 3.2499999, clock: 2.9999999
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 3.36, clock: 3.11
+C:(ClockTestApp)ClockTestNetwork.host.app: finished: simtime: 3.36, clock: 3.11
+%#--------------------------------------------------------------------------------------------------------------
+%not-contains: stdout
+undisposed object:
+%not-contains: stdout
+-- check module destructor
+%#--------------------------------------------------------------------------------------------------------------

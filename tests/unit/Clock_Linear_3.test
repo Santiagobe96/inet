@@ -1,5 +1,5 @@
 %description:
-Tests GranularityClock:
+Tests LinearClock:
 
 %#--------------------------------------------------------------------------------------------------------------
 %inifile: omnetpp.ini
@@ -9,25 +9,25 @@ network = inet.test.unittest.lib.ClockTestNetwork
 cmdenv-express-mode = false
 cmdenv-log-prefix = "C:%C: "
 
-*.host.clock.typename = "GranularityClock"
+*.host.clock.typename = "LinearClock"
 *.host.clock.timeShift = 0.03s
-*.host.clock.granularity = 0.1s
+*.host.clock.driftRate = 0 ppm
 %#--------------------------------------------------------------------------------------------------------------
 %postrun-command: grep "^C:" test.out > clock.out || true
 %#--------------------------------------------------------------------------------------------------------------
 %contains: clock.out
 C:(ClockTestApp)ClockTestNetwork.host.app: start
 C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 1.1, scheduled simtime: 1.07, scheduled clock: 1.1
-C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 2.11, scheduled simtime: 2.17, scheduled clock: 2.11
-C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 2.89, scheduled simtime: 2.87, scheduled clock: 2.89
-C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 2.9999999, scheduled simtime: 2.97, scheduled clock: 2.9999999
-C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 3.11, scheduled simtime: 3.17, scheduled clock: 3.11
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 2.11, scheduled simtime: 2.08, scheduled clock: 2.11
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 2.89, scheduled simtime: 2.86, scheduled clock: 2.89
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 2.9999999, scheduled simtime: 2.9699999, scheduled clock: 2.9999999
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule to clock: 3.11, scheduled simtime: 3.08, scheduled clock: 3.11
 C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 1.07, clock: 1.1
-C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 2.17, clock: 2.2
-C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 2.87, clock: 2.9
-C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 2.97, clock: 3
-C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 3.17, clock: 3.2
-C:(ClockTestApp)ClockTestNetwork.host.app: finished: simtime: 3.17, clock: 3.2
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 2.08, clock: 2.11
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 2.86, clock: 2.89
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 2.9699999, clock: 2.9999999
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived: simtime: 3.08, clock: 3.11
+C:(ClockTestApp)ClockTestNetwork.host.app: finished: simtime: 3.08, clock: 3.11
 %#--------------------------------------------------------------------------------------------------------------
 %not-contains: stdout
 undisposed object:
