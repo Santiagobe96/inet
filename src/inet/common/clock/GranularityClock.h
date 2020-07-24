@@ -28,7 +28,7 @@ namespace inet {
  */
 class INET_API GranularityClock : public ClockBase, public IClock
 {
-  private:
+  protected:
     struct TimePair {
         simtime_t simtime;
         clocktime_t clocktime;
@@ -43,6 +43,7 @@ class INET_API GranularityClock : public ClockBase, public IClock
 
     virtual clocktime_t granularize(clocktime_t clock) const;
     virtual clocktime_t granularizeUp(clocktime_t clock) const;
+    virtual clocktime_t fromSimTimePrecise(simtime_t t) const;
     virtual clocktime_t fromSimTime(simtime_t t) const;
     virtual simtime_t toSimTime(clocktime_t t) const;
 

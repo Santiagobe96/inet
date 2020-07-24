@@ -47,12 +47,17 @@ clocktime_t GranularityClock::granularizeUp(clocktime_t clock) const
 
 simtime_t GranularityClock::toSimTime(clocktime_t clock) const
 {
-    return origin.simtime + (granularize(clock) - origin.clocktime).asSimTime() * (1.0 + driftRate);
+    return origin.simtime + (granularize(clock) - origin.clocktime).asSimTime() / (1.0 + driftRate);
+}
+
+clocktime_t GranularityClock::fromSimTimePrecise(simtime_t t) const
+{
+    return origin.clocktime + ClockTime::from((t-origin.simtime) * (1.0 + driftRate));
 }
 
 clocktime_t GranularityClock::fromSimTime(simtime_t t) const
 {
-    return granularize(origin.clocktime + ClockTime::from((t-origin.simtime) / (1.0 + driftRate)));
+    return granularize(fromSimTimePrecise(t));
 }
 
 clocktime_t GranularityClock::getClockTime() const
@@ -62,6 +67,10 @@ clocktime_t GranularityClock::getClockTime() const
 
 void GranularityClock::scheduleClockEventAt(clocktime_t clock, ClockEvent *msg)
 {
+    clock = granularizeUp(clock);
+    cSimpleModule *targetModule = getTargetModule();
+    msg->setSchedulerModule(targetModule);
+    msg->setClockModule(this);
     msg->setRelative(false);
     msg->setArrivalClockTime(clock);
     simtime_t now = simTime();
@@ -73,19 +82,23 @@ void GranularityClock::scheduleClockEventAt(clocktime_t clock, ClockEvent *msg)
             t = now;
         }
     }
-    getTargetModule()->scheduleAt(t, msg);
+    targetModule->scheduleAt(t, msg);
 }
 
 void GranularityClock::scheduleClockEventAfter(clocktime_t clockDelay, ClockEvent *msg)
 {
+    clockDelay = granularizeUp(clockDelay);
+    cSimpleModule *targetModule = getTargetModule();
+    msg->setSchedulerModule(targetModule);
+    msg->setClockModule(this);
     msg->setRelative(true);
     clocktime_t nowClock = getClockTime();
-    clocktime_t arrivalClockTime = nowClock + granularizeUp(clockDelay);
+    clocktime_t arrivalClockTime = nowClock + clockDelay;
     msg->setArrivalClockTime(arrivalClockTime);
     simtime_t delay = SIMTIME_ZERO;
     if (! clockDelay.isZero())
         delay = toSimTime(arrivalClockTime) - simTime();
-    getTargetModule()->scheduleAfter(delay, msg);
+    targetModule->scheduleAfter(delay, msg);
 }
 
 cMessage *GranularityClock::cancelClockEvent(ClockEvent *msg)

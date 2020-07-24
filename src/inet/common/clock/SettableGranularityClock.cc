@@ -13,6 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
+#include<bits/stdc++.h>
+
 #include "inet/common/clock/SettableGranularityClock.h"
 
 namespace inet {
@@ -21,115 +23,85 @@ Define_Module(SettableGranularityClock);
 
 void SettableGranularityClock::initialize()
 {
-    origin.simtime = simTime();
-    simtime_t clock = par("timeShift");
-    origin.clocktime = ClockTime::from(simTime() + clock);
-    driftRate = par("driftRate").doubleValue() / 1e6;
-    setGranularity(par("granularity"));
-}
-
-clocktime_t SettableGranularityClock::getClockTime() const
-{
-    simtime_t t = simTime();
-    return fromSimTime(t);
+    GranularityClock::initialize();
 }
 
 void SettableGranularityClock::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
 {
-    simtime_t now = simTime();
-    for (auto it = timers.begin(); it != timers.end(); ) {
-        if (it->arrivalTime.simtime <= now)
-            it = timers.erase(it);
-        else {
-            if (it->msg == msg)
-                throw cRuntimeError("Message already scheduled");
-            ++it;
-        }
-    }
-    Timer timer;
-    timer.module = getTargetModule();
-    timer.msg = msg;
-    timer.arrivalTime.clocktime = t;
-    timer.arrivalTime.simtime = toSimTime(t);
-    timer.module->scheduleAt(timer.arrivalTime.simtime, msg);
-    timers.push_back(timer);
+    GranularityClock::scheduleClockEventAt(t, msg);
+    timers.push_back(msg);
 }
 
 void SettableGranularityClock::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg)
 {
-    throw cRuntimeError("implementation");
+    GranularityClock::scheduleClockEventAfter(t, msg);
+    timers.push_back(msg);
 }
 
 cMessage *SettableGranularityClock::cancelClockEvent(ClockEvent *msg)
 {
-    simtime_t now = simTime();
-    for (auto it = timers.begin(); it != timers.end(); ) {
-        if (it->arrivalTime.simtime <= now || it->msg == msg)
-            it = timers.erase(it);
-        else
-            ++it;
-    }
+    std::remove(timers.begin(), timers.end(), msg);
     return getTargetModule()->cancelEvent(msg);
 }
 
-void SettableGranularityClock::purgeTimers()
+void SettableGranularityClock::rescheduleTimers(clocktime_t clockDelta)
 {
     simtime_t now = simTime();
-    for (auto it = timers.begin(); it != timers.end(); ) {
-        if (it->arrivalTime.simtime <= now)
-            it = timers.erase(it);
-        else
-            ++it;
-    }
-}
-
-void SettableGranularityClock::rescheduleTimers()
-{
-    simtime_t now = simTime();
-    for (auto it = timers.begin(); it != timers.end(); ) {
-        if (it->arrivalTime.simtime <= now)
-            it = timers.erase(it);
-        else {
-            simtime_t st = toSimTime(it->arrivalTime.clocktime);
-            if (st < now)
-                st = now;
+    clocktime_t nowClock = getClockTime();
+    for (auto it: timers) {
+        cSimpleModule *targetModule = const_cast<cSimpleModule *>(it->getSchedulerModule());
+        if (it->getRelative()) {
+            it->setArrivalClockTime(it->getArrivalClockTime() + clockDelta);
+            simtime_t newDelta = toSimTime(it->getArrivalClockTime()) - simTime();
             {
-                cContextSwitcher tmp(it->module);
-                it->module->cancelEvent(it->msg);
-                it->module->scheduleAt(st, it->msg);
-                it->arrivalTime.simtime = st;
+                cContextSwitcher tmp(targetModule);
+                targetModule->rescheduleAfter(newDelta, it);
             }
-            ++it;
+        }
+        else {
+            clocktime_t ct = it->getArrivalClockTime();
+            simtime_t newTime = toSimTime(ct);
+            if (newTime < now) {
+                if (ct <= nowClock) {
+                    ct = nowClock;  //TODO or cancel event or notify scheduler module?
+                    newTime = now;
+                }
+            }
+            {
+                cContextSwitcher tmp(targetModule);
+                targetModule->rescheduleAt(newTime, it);
+            }
         }
     }
 }
 
 void SettableGranularityClock::setDriftRate(double newDriftRate)
 {
+    simtime_t now = simTime();
+    clocktime_t nowClock = fromSimTimePrecise(now);
+    EV_DEBUG << "set driftRate from " << driftRate << " to " << newDriftRate << " at simtime " << now << ", clock " << nowClock << endl;
+    // modify 'origin' to current values before change the driftRate
+    origin.simtime = now;
+    origin.clocktime = nowClock;
     driftRate = newDriftRate;
-    EV_DEBUG << "set driftRate to " << driftRate << " at " << simTime() << endl;
-    rescheduleTimers();
+    rescheduleTimers(CLOCKTIME_ZERO);
 }
 
 void SettableGranularityClock::setClockTime(clocktime_t t)
 {
-    origin.simtime = simTime();
+    clocktime_t oldClock = fromSimTime(simTime());
+    simtime_t atSimtime = toSimTime(oldClock);
+    t = granularize(t);
+    EV_DEBUG << "set clock time from " << oldClock << " to " << t << " at simtime " << atSimtime << endl;
+    origin.simtime = atSimtime;
     origin.clocktime = t;
-    EV_DEBUG << "set clock time to " << origin.clocktime << " at " << origin.simtime << endl;
-    rescheduleTimers();
-}
-
-void SettableGranularityClock::setGranularity(clocktime_t t)
-{
-    granularity = t;
-    if (granularity < CLOCKTIME_ZERO)
-        throw cRuntimeError("incorrect granularity value: %s, granularity must be 0 or positive value", granularity.str().c_str());
-    if (granularity == CLOCKTIME_ZERO)
-        granularity.setRaw(1);
+    rescheduleTimers(t - oldClock);
 }
 
 void SettableGranularityClock::processCommand(const cXMLElement& node)
 {
+    Enter_Method("processCommand");
+
     if (!strcmp(node.getTagName(), "set-clock")) {
         if (const char *clockTimeStr = node.getAttribute("time")) {
             EV_DEBUG << "processCommand: set clock time to " << clockTimeStr << endl;
@@ -146,23 +118,11 @@ void SettableGranularityClock::processCommand(const cXMLElement& node)
         throw cRuntimeError("invalid command node for %s at %s", getClassName(), node.getSourceLocation());
 }
 
-clocktime_t SettableGranularityClock::fromSimTime(simtime_t t) const
+void SettableGranularityClock::arrived(ClockEvent *msg)
 {
-    auto granularityRaw = granularity.raw();
-    clocktime_t clock = ClockTime::from((t - origin.simtime) / (1.0 + driftRate));
-    clock.setRaw((clock.raw() / granularityRaw) * granularityRaw);
-    clock += origin.clocktime;
-    return clock;
+    GranularityClock::arrived(msg);
+    std::remove(timers.begin(), timers.end(), msg);
 }
-
-simtime_t SettableGranularityClock::toSimTime(clocktime_t clock) const
-{
-    auto granularityRaw = granularity.raw();
-    clock -= origin.clocktime;
-    clock.setRaw(((clock.raw() + granularityRaw - 1) / granularityRaw) * granularityRaw);
-    return origin.simtime + clock.asSimTime() * (1.0 + driftRate);
-}
-
 
 } // namespace inet
 

@@ -16,8 +16,7 @@
 #ifndef __INET_SettableGranularityClock_H
 #define __INET_SettableGranularityClock_H
 
-#include "inet/common/clock/base/ClockBase.h"
-#include "inet/common/clock/contract/IClock.h"
+#include "inet/common/clock/GranularityClock.h"
 #include "inet/common/scenario/IScriptable.h"
 
 namespace inet {
@@ -25,28 +24,14 @@ namespace inet {
 /**
  * Models a clock with a constant clock drift rate.
  */
-class INET_API SettableGranularityClock : public ClockBase, public IClock, public IScriptable
+class INET_API SettableGranularityClock : public GranularityClock, public IScriptable
 {
   private:
-    struct TimePair {
-        simtime_t simtime;
-        clocktime_t clocktime;
-    };
-    struct Timer {
-        cSimpleModule *module;
-        cMessage *msg;
-        TimePair arrivalTime;
-    };
-    TimePair origin;
-    double driftRate;
-    clocktime_t granularity;
-    std::vector<Timer> timers;
+    std::vector<ClockEvent*> timers;
 
   protected:
     void purgeTimers();
-    void rescheduleTimers();
-    clocktime_t fromSimTime(simtime_t t) const;
-    simtime_t toSimTime(clocktime_t t) const;
+    void rescheduleTimers(clocktime_t clockDelta);
 
     // IScriptable implementation
     virtual void processCommand(const cXMLElement& node) override;
@@ -54,18 +39,14 @@ class INET_API SettableGranularityClock : public ClockBase, public IClock, publi
   public:
     virtual void initialize() override;
 
-    virtual clocktime_t getClockTime() const override;
     virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) override;
     virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) override;
     virtual cMessage *cancelClockEvent(ClockEvent *msg) override;
-    void arrived(ClockEvent *msg) override
-    {
-        msg->setClockModule(nullptr);
-    }
 
     virtual void setDriftRate(double newDriftRate);
     virtual void setClockTime(clocktime_t t);
-    void setGranularity(clocktime_t t);
+
+    void arrived(ClockEvent *msg) override;
 };
 
 } // namespace inet
