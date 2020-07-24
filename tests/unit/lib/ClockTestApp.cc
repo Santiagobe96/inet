@@ -34,7 +34,8 @@ void ClockTestApp::initialize(int stage)
         timeVector.push_back(3.11);
         idx = 0;
         for (auto ct: timeVector) {
-            auto msg = new ClockEvent("Timer");
+            std::string timerName = "Timer_" + ct.str();
+            auto msg = new ClockEvent(timerName.c_str());
             doSchedule(ct, msg);
         }
     }
@@ -43,13 +44,13 @@ void ClockTestApp::initialize(int stage)
 void ClockTestApp::doSchedule(clocktime_t ct, ClockEvent *msg)
 {
     scheduleClockEventAt(ct, msg);
-    EV << "schedule to clock: " << ct << ", scheduled simtime: " << msg->getArrivalTime() << ", scheduled clock: " << getArrivalClockTime(msg) << endl;
+    EV << "schedule " << msg->getName() << " to clock: " << ct << ", scheduled simtime: " << msg->getArrivalTime() << ", scheduled clock: " << getArrivalClockTime(msg) << endl;
 }
 
 void ClockTestApp::handleMessage(cMessage *msg)
 {
     ASSERT(msg->isSelfMessage());
-    EV << "arrived: simtime: " << simTime() << ", clock: " << getClockTime() << endl;
+    EV << "arrived " << msg->getName() << ": simtime: " << simTime() << ", clock: " << getClockTime() << endl;
     delete msg;
 }
 

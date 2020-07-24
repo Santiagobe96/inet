@@ -1,5 +1,5 @@
 %description:
-Tests SettableLinearClock:
+Tests SettableGranularityClock:
 
 %#--------------------------------------------------------------------------------------------------------------
 %inifile: omnetpp.ini
@@ -9,8 +9,9 @@ network = inet.test.unittest.lib.ClockTestNetwork
 cmdenv-express-mode = false
 cmdenv-log-prefix = "C:%C: "
 
-*.host.clock.typename = "SettableLinearClock"
+*.host.clock.typename = "SettableGranularityClock"
 *.host.clock.timeShift = 1s
+*.host.clock.granularity = 0.1s
 *.host.clock.driftRate = -0.5e6 ppm
 *.scenarioManager.script = xml('<scenario><set-clock t="2.5s" module="host.clock" driftRate="0 ppm"/></scenario>')
 %#--------------------------------------------------------------------------------------------------------------
@@ -19,19 +20,19 @@ cmdenv-log-prefix = "C:%C: "
 %contains: clock.out
 C:(ClockTestApp)ClockTestNetwork.host.app: start
 C:(ClockTestApp)ClockTestNetwork.host.app: schedule Timer_1.1 to clock: 1.1, scheduled simtime: 0.2, scheduled clock: 1.1
-C:(ClockTestApp)ClockTestNetwork.host.app: schedule Timer_2.11 to clock: 2.11, scheduled simtime: 2.22, scheduled clock: 2.11
-C:(ClockTestApp)ClockTestNetwork.host.app: schedule Timer_2.89 to clock: 2.89, scheduled simtime: 3.78, scheduled clock: 2.89
-C:(ClockTestApp)ClockTestNetwork.host.app: schedule Timer_2.9999999 to clock: 2.9999999, scheduled simtime: 3.9999998, scheduled clock: 2.9999999
-C:(ClockTestApp)ClockTestNetwork.host.app: schedule Timer_3.11 to clock: 3.11, scheduled simtime: 4.22, scheduled clock: 3.11
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule Timer_2.11 to clock: 2.11, scheduled simtime: 2.4, scheduled clock: 2.2
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule Timer_2.89 to clock: 2.89, scheduled simtime: 3.8, scheduled clock: 2.9
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule Timer_2.9999999 to clock: 2.9999999, scheduled simtime: 4, scheduled clock: 3
+C:(ClockTestApp)ClockTestNetwork.host.app: schedule Timer_3.11 to clock: 3.11, scheduled simtime: 4.4, scheduled clock: 3.2
 C:(ClockTestApp)ClockTestNetwork.host.app: arrived Timer_1.1: simtime: 0.2, clock: 1.1
-C:(ClockTestApp)ClockTestNetwork.host.app: arrived Timer_2.11: simtime: 2.22, clock: 2.11
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived Timer_2.11: simtime: 2.4, clock: 2.2
 C:(ScenarioManager)ClockTestNetwork.scenarioManager: processing <set-clock> command...
-C:(SettableLinearClock)ClockTestNetwork.host.clock: processCommand: set drift rate to 0 ppm
-C:(SettableLinearClock)ClockTestNetwork.host.clock: set driftRate from -0.5 to 0 at simtime 2.5, clock 2.25
-C:(ClockTestApp)ClockTestNetwork.host.app: arrived Timer_2.89: simtime: 3.14, clock: 2.89
-C:(ClockTestApp)ClockTestNetwork.host.app: arrived Timer_2.9999999: simtime: 3.2499999, clock: 2.9999999
-C:(ClockTestApp)ClockTestNetwork.host.app: arrived Timer_3.11: simtime: 3.36, clock: 3.11
-C:(ClockTestApp)ClockTestNetwork.host.app: finished: simtime: 3.36, clock: 3.11
+C:(SettableGranularityClock)ClockTestNetwork.host.clock: processCommand: set drift rate to 0 ppm
+C:(SettableGranularityClock)ClockTestNetwork.host.clock: set driftRate from -0.5 to 0 at simtime 2.5, clock 2.25
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived Timer_2.89: simtime: 3.15, clock: 2.9
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived Timer_2.9999999: simtime: 3.25, clock: 3
+C:(ClockTestApp)ClockTestNetwork.host.app: arrived Timer_3.11: simtime: 3.45, clock: 3.2
+C:(ClockTestApp)ClockTestNetwork.host.app: finished: simtime: 3.45, clock: 3.2
 %#--------------------------------------------------------------------------------------------------------------
 %not-contains: stdout
 undisposed object:
