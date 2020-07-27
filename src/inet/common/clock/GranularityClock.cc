@@ -95,14 +95,14 @@ void GranularityClock::scheduleClockEventAfter(clocktime_t clockDelay, ClockEven
     clocktime_t nowClock = getClockTime();
     clocktime_t arrivalClockTime = nowClock + clockDelay;
     msg->setArrivalClockTime(arrivalClockTime);
-    simtime_t delay = SIMTIME_ZERO;
-    if (! clockDelay.isZero())
-        delay = toSimTime(arrivalClockTime) - simTime();
+    simtime_t delay = clockDelay.isZero() ? SIMTIME_ZERO : toSimTime(arrivalClockTime) - simTime();
     targetModule->scheduleAfter(delay, msg);
 }
 
 cMessage *GranularityClock::cancelClockEvent(ClockEvent *msg)
 {
+    msg->setSchedulerModule(nullptr);
+    msg->setClockModule(nullptr);
     return getTargetModule()->cancelEvent(msg);
 }
 
