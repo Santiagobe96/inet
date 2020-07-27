@@ -60,11 +60,6 @@ clocktime_t GranularityClock::fromSimTime(simtime_t t) const
     return granularize(fromSimTimePrecise(t));
 }
 
-clocktime_t GranularityClock::getClockTime() const
-{
-    return fromSimTime(simTime());
-}
-
 void GranularityClock::scheduleClockEventAt(clocktime_t clock, ClockEvent *msg)
 {
     clock = granularizeUp(clock);
@@ -97,19 +92,6 @@ void GranularityClock::scheduleClockEventAfter(clocktime_t clockDelay, ClockEven
     msg->setArrivalClockTime(arrivalClockTime);
     simtime_t delay = clockDelay.isZero() ? SIMTIME_ZERO : toSimTime(arrivalClockTime) - simTime();
     targetModule->scheduleAfter(delay, msg);
-}
-
-cMessage *GranularityClock::cancelClockEvent(ClockEvent *msg)
-{
-    msg->setSchedulerModule(nullptr);
-    msg->setClockModule(nullptr);
-    return getTargetModule()->cancelEvent(msg);
-}
-
-void GranularityClock::arrived(ClockEvent *msg)
-{
-    msg->setSchedulerModule(nullptr);
-    msg->setClockModule(nullptr);
 }
 
 } // namespace inet
