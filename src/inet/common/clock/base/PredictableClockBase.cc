@@ -32,14 +32,17 @@ void PredictableClockBase::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
     targetModule->scheduleAt(toSimTime(t), msg);
 }
 
-void PredictableClockBase::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg)
+void PredictableClockBase::scheduleClockEventAfter(clocktime_t clockDelay, ClockEvent *msg)
 {
     cSimpleModule *targetModule = getTargetModule();
     msg->setSchedulerModule(targetModule);
     msg->setClockModule(this);
     msg->setRelative(true);
-    msg->setArrivalClockTime(getClockTime() + t);
-    targetModule->scheduleAfter(toSimTime(msg->getArrivalClockTime()) - simTime(), msg);
+    clocktime_t nowClock = getClockTime();
+    clocktime_t arrivalClockTime = nowClock + clockDelay;
+    msg->setArrivalClockTime(arrivalClockTime);
+    simtime_t delay = clockDelay.isZero() ? SIMTIME_ZERO : toSimTime(arrivalClockTime) - simTime();
+    targetModule->scheduleAfter(delay, msg);
 }
 
 cMessage *PredictableClockBase::cancelClockEvent(ClockEvent *msg)
