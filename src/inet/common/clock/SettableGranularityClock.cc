@@ -47,12 +47,11 @@ cMessage *SettableGranularityClock::cancelClockEvent(ClockEvent *msg)
 void SettableGranularityClock::rescheduleTimers(clocktime_t clockDelta)
 {
     simtime_t now = simTime();
-    clocktime_t nowClock = getClockTime();
     for (auto it: timers) {
         cSimpleModule *targetModule = const_cast<cSimpleModule *>(it->getSchedulerModule());
         if (it->getRelative()) {
             it->setArrivalClockTime(it->getArrivalClockTime() + clockDelta);
-            simtime_t newDelta = toSimTime(it->getArrivalClockTime()) - simTime();
+            simtime_t newDelta = toSimTime(it->getArrivalClockTime()) - now;
             {
                 cContextSwitcher tmp(targetModule);
                 targetModule->rescheduleAfter(newDelta, it);
@@ -61,12 +60,8 @@ void SettableGranularityClock::rescheduleTimers(clocktime_t clockDelta)
         else {
             clocktime_t ct = it->getArrivalClockTime();
             simtime_t newTime = toSimTime(ct);
-            if (newTime < now) {
-                if (ct <= nowClock) {
-                    ct = nowClock;  //TODO or cancel event or notify scheduler module?
-                    newTime = now;
-                }
-            }
+            if (newTime < now)   //TODO or cancel event or notify scheduler module?
+                newTime = now;
             {
                 cContextSwitcher tmp(targetModule);
                 targetModule->rescheduleAt(newTime, it);
@@ -77,11 +72,11 @@ void SettableGranularityClock::rescheduleTimers(clocktime_t clockDelta)
 
 void SettableGranularityClock::setDriftRate(double newDriftRate)
 {
-    simtime_t now = simTime();
-    clocktime_t nowClock = fromSimTimePrecise(now);
-    EV_DEBUG << "set driftRate from " << driftRate << " to " << newDriftRate << " at simtime " << now << ", clock " << nowClock << endl;
+    simtime_t atSimtime = simTime();
+    clocktime_t nowClock = fromSimTimePrecise(atSimtime);
+    EV_DEBUG << "set driftRate from " << driftRate << " to " << newDriftRate << " at simtime " << atSimtime << ", clock " << nowClock << endl;
     // modify 'origin' to current values before change the driftRate
-    origin.simtime = now;
+    origin.simtime = atSimtime;
     origin.clocktime = nowClock;
     driftRate = newDriftRate;
     rescheduleTimers(CLOCKTIME_ZERO);
@@ -89,7 +84,7 @@ void SettableGranularityClock::setDriftRate(double newDriftRate)
 
 void SettableGranularityClock::setClockTime(clocktime_t t)
 {
-    clocktime_t oldClock = fromSimTime(simTime());
+    clocktime_t oldClock = getClockTime();
     simtime_t atSimtime = toSimTime(oldClock);
     t = granularize(t);
     EV_DEBUG << "set clock time from " << oldClock << " to " << t << " at simtime " << atSimtime << endl;

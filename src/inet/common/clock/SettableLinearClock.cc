@@ -47,7 +47,6 @@ cMessage *SettableLinearClock::cancelClockEvent(ClockEvent *msg)
 void SettableLinearClock::rescheduleTimers(clocktime_t clockDelta)
 {
     simtime_t now = simTime();
-    clocktime_t nowClock = getClockTime();
     for (auto it: timers) {
         cSimpleModule *targetModule = const_cast<cSimpleModule *>(it->getSchedulerModule());
         if (it->getRelative()) {
@@ -60,9 +59,9 @@ void SettableLinearClock::rescheduleTimers(clocktime_t clockDelta)
         }
         else {
             clocktime_t ct = it->getArrivalClockTime();
-            if (ct < nowClock)
-                ct = nowClock;  //TODO or cancel event or notify scheduler module?
             simtime_t newTime = toSimTime(ct);
+            if (newTime < now)   //TODO or cancel event or notify scheduler module?
+                newTime = now;
             {
                 cContextSwitcher tmp(targetModule);
                 targetModule->rescheduleAt(newTime, it);
@@ -73,11 +72,11 @@ void SettableLinearClock::rescheduleTimers(clocktime_t clockDelta)
 
 void SettableLinearClock::setDriftRate(double newDriftRate)
 {
-    simtime_t now = simTime();
+    simtime_t atSimtime = simTime();
     clocktime_t nowClock = getClockTime();
-    EV_DEBUG << "set driftRate from " << driftRate << " to " << newDriftRate << " at simtime " << now << ", clock " << nowClock << endl;
+    EV_DEBUG << "set driftRate from " << driftRate << " to " << newDriftRate << " at simtime " << atSimtime << ", clock " << nowClock << endl;
     // modify 'origin' to current values before change the driftRate
-    origin.simtime = now;
+    origin.simtime = atSimtime;
     origin.clocktime = nowClock;
     driftRate = newDriftRate;
     rescheduleTimers(CLOCKTIME_ZERO);
@@ -85,10 +84,10 @@ void SettableLinearClock::setDriftRate(double newDriftRate)
 
 void SettableLinearClock::setClockTime(clocktime_t t)
 {
-    simtime_t now = simTime();
     clocktime_t oldClock = getClockTime();
-    EV_DEBUG << "set clock time from " << oldClock << " to " << t << " at simtime " << now << endl;
-    origin.simtime = now;
+    simtime_t atSimtime = simTime();
+    EV_DEBUG << "set clock time from " << oldClock << " to " << t << " at simtime " << atSimtime << endl;
+    origin.simtime = atSimtime;
     origin.clocktime = t;
     rescheduleTimers(t - oldClock);
 }
