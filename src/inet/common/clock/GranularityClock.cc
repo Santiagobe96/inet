@@ -23,16 +23,13 @@ Define_Module(GranularityClock);
 
 void GranularityClock::initialize()
 {
+    LinearClock::initialize();
     granularity = par("granularity");
     if (granularity < CLOCKTIME_ZERO)
         throw cRuntimeError("incorrect granularity value: %s, granularity must be 0 or positive value", granularity.str().c_str());
     if (granularity == CLOCKTIME_ZERO)
         granularity.setRaw(1);
     granularityRaw = granularity.raw();
-    driftRate = par("driftRate").doubleValue() / 1e6;
-    origin.simtime = simTime();
-    simtime_t clock = par("timeShift");
-    origin.clocktime = ClockTime::from(simTime() + clock);
 }
 
 clocktime_t GranularityClock::granularize(clocktime_t clock) const
@@ -50,14 +47,9 @@ simtime_t GranularityClock::toSimTime(clocktime_t clock) const
     return origin.simtime + (granularize(clock) - origin.clocktime).asSimTime() / (1.0 + driftRate);
 }
 
-clocktime_t GranularityClock::fromSimTimePrecise(simtime_t t) const
-{
-    return origin.clocktime + ClockTime::from((t-origin.simtime) * (1.0 + driftRate));
-}
-
 clocktime_t GranularityClock::fromSimTime(simtime_t t) const
 {
-    return granularize(fromSimTimePrecise(t));
+    return granularize(LinearClock::fromSimTime(t));
 }
 
 void GranularityClock::scheduleClockEventAt(clocktime_t clock, ClockEvent *msg)

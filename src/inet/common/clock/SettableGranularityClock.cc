@@ -73,7 +73,7 @@ void SettableGranularityClock::rescheduleTimers(clocktime_t clockDelta)
 void SettableGranularityClock::setDriftRate(double newDriftRate)
 {
     simtime_t atSimtime = simTime();
-    clocktime_t nowClock = fromSimTimePrecise(atSimtime);
+    clocktime_t nowClock = LinearClock::fromSimTime(atSimtime);
     EV_DEBUG << "set driftRate from " << driftRate << " to " << newDriftRate << " at simtime " << atSimtime << ", clock " << nowClock << endl;
     // modify 'origin' to current values before change the driftRate
     origin.simtime = atSimtime;

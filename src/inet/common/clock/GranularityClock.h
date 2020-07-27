@@ -18,34 +18,26 @@
 #ifndef __INET_GranularityClock_H
 #define __INET_GranularityClock_H
 
-#include "inet/common/clock/base/PredictableClockBase.h"
+#include "inet/common/clock/LinearClock.h"
 
 namespace inet {
 
 /**
  * Models a clock with a constant granularity.
  */
-class INET_API GranularityClock : public PredictableClockBase
+class INET_API GranularityClock : public LinearClock
 {
   protected:
-    struct TimePair {
-        simtime_t simtime;
-        clocktime_t clocktime;
-    };
-    TimePair origin;
     clocktime_t granularity;
     int64_t granularityRaw;    // cached granularity.raw()
-    double driftRate;
 
   public:
     virtual void initialize() override;
 
     virtual clocktime_t granularize(clocktime_t clock) const;
     virtual clocktime_t granularizeUp(clocktime_t clock) const;
-    virtual clocktime_t fromSimTimePrecise(simtime_t t) const;
     virtual clocktime_t fromSimTime(simtime_t t) const override;
     virtual simtime_t toSimTime(clocktime_t t) const override;
-
     virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) override;
     virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) override;
 };
