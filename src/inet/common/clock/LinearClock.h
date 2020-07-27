@@ -35,6 +35,7 @@ class INET_API LinearClock : public PredictableClockBase
 
   public:
     virtual void initialize() override;
+
     virtual clocktime_t fromSimTime(simtime_t t) const override;
     virtual simtime_t toSimTime(clocktime_t t) const override;
 };
