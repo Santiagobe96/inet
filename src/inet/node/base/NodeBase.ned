@@ -17,7 +17,7 @@
 
 package inet.node.base;
 
-import inet.common.clock.contract.IClock;
+import inet.clock.contract.IClock;
 import inet.common.lifecycle.NodeStatus;
 import inet.mobility.contract.IMobility;
 import inet.node.inet.INetworkNode;

@@ -13,18 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-package inet.common.clock;
+package inet.clock;
 
-import inet.common.clock.contract.IClock;
+import inet.clock.contract.IClock;
 
 //
 // Models a clock where the drift rate is constant.
 //
-simple SettableLinearClock like IClock
+simple LinearClock like IClock
 {
-    //TODO IScriptable instead of handleParameterChange
     parameters:
-        double timeShift @unit(s) = default(0s); // set the clock time to simtime + timeShift at initialize
+        // TODO: confusing name, shift in which direction? rename to zeroClockTime? what about dynamically created clocks?
+        // TODO: replace this with the next
+        double timeShift @unit(s) = default(0s); // the simulation time when the clock's value is zero
+        // TODO: find better parameters!
+        double initialClockTime;
+        double clockStartValue @unit(s); // clock value at zero simulation time or module creation time?
         double driftRate @unit(ppm) = default(0ppm); // clock precision, expressed as a ratio in parts per million
         @display("i=block/timer");
 }

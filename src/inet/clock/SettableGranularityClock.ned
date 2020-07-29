@@ -13,33 +13,19 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef __INET_LINEARCLOCK_H
-#define __INET_LINEARCLOCK_H
+package inet.clock;
 
-#include "inet/common/clock/base/PredictableClockBase.h"
+import inet.clock.contract.IClock;
 
-namespace inet {
-
-/**
- * Models a clock with a constant clock drift rate.
- */
-class INET_API LinearClock : public PredictableClockBase
+//
+// Models a clock where the drift rate is constant.
+//
+simple SettableGranularityClock like IClock
 {
-  protected:
-    struct TimePair {
-        simtime_t simtime;
-        clocktime_t clocktime;
-    };
-    TimePair origin;
-    double driftRate;
-
-  public:
-    virtual void initialize() override;
-    virtual clocktime_t fromSimTime(simtime_t t) const override;
-    virtual simtime_t toSimTime(clocktime_t t) const override;
-};
-
-} // namespace inet
-
-#endif // ifndef __INET_LINEARCLOCK_H
+    parameters:
+        double timeShift @unit(s) = default(0s); // set the clock time to simtime + timeShift at initialize
+        double driftRate @unit(ppm) = default(0ppm); // clock precision, expressed as a ratio in parts per million
+        double granularity @unit(s) = default(1ms);     // clock granularity, 0 means the simtime precision
+        @display("i=block/timer");
+}
 

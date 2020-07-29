@@ -15,16 +15,12 @@
 
 #include<bits/stdc++.h>
 
-#include "inet/common/clock/SettableGranularityClock.h"
+#include "inet/clock/SettableGranularityClock.h"
 
+// TODO: we should not copy the code from SettableLinearClock here
 namespace inet {
 
 Define_Module(SettableGranularityClock);
-
-void SettableGranularityClock::initialize()
-{
-    GranularityClock::initialize();
-}
 
 void SettableGranularityClock::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
 {
@@ -38,20 +34,21 @@ void SettableGranularityClock::scheduleClockEventAfter(clocktime_t t, ClockEvent
     timers.push_back(msg);
 }
 
-cMessage *SettableGranularityClock::cancelClockEvent(ClockEvent *msg)
+ClockEvent *SettableGranularityClock::cancelClockEvent(ClockEvent *msg)
 {
     std::remove(timers.begin(), timers.end(), msg);
-    return getTargetModule()->cancelEvent(msg);
+    return static_cast<ClockEvent *>(getTargetModule()->cancelEvent(msg));
 }
 
 void SettableGranularityClock::rescheduleTimers(clocktime_t clockDelta)
 {
     simtime_t now = simTime();
     for (auto it: timers) {
-        cSimpleModule *targetModule = const_cast<cSimpleModule *>(it->getSchedulerModule());
+        // TODO: replace with getArrivalModule() and delete schedulerModule
+        cSimpleModule *targetModule = check_and_cast<cSimpleModule *>(it->getArrivalModule());
         if (it->getRelative()) {
             it->setArrivalClockTime(it->getArrivalClockTime() + clockDelta);
-            simtime_t newDelta = toSimTime(it->getArrivalClockTime()) - now;
+            simtime_t newDelta = computeSimTimeFromClockTime(it->getArrivalClockTime()) - now;
             {
                 cContextSwitcher tmp(targetModule);
                 targetModule->rescheduleAfter(newDelta, it);
@@ -59,7 +56,7 @@ void SettableGranularityClock::rescheduleTimers(clocktime_t clockDelta)
         }
         else {
             clocktime_t ct = it->getArrivalClockTime();
-            simtime_t newTime = toSimTime(ct);
+            simtime_t newTime = computeSimTimeFromClockTime(ct);
             if (newTime < now)   //TODO or cancel event or notify scheduler module?
                 newTime = now;
             {
@@ -73,7 +70,7 @@ void SettableGranularityClock::rescheduleTimers(clocktime_t clockDelta)
 void SettableGranularityClock::setDriftRate(double newDriftRate)
 {
     simtime_t atSimtime = simTime();
-    clocktime_t nowClock = LinearClock::fromSimTime(atSimtime);
+    clocktime_t nowClock = LinearClock::computeClockTimeFromSimTime(atSimtime);
     EV_DEBUG << "set driftRate from " << driftRate << " to " << newDriftRate << " at simtime " << atSimtime << ", clock " << nowClock << endl;
     // modify 'origin' to current values before change the driftRate
     origin.simtime = atSimtime;
@@ -85,7 +82,7 @@ void SettableGranularityClock::setDriftRate(double newDriftRate)
 void SettableGranularityClock::setClockTime(clocktime_t t)
 {
     clocktime_t oldClock = getClockTime();
-    simtime_t atSimtime = toSimTime(oldClock);
+    simtime_t atSimtime = computeSimTimeFromClockTime(oldClock);
     t = granularize(t);
     EV_DEBUG << "set clock time from " << oldClock << " to " << t << " at simtime " << atSimtime << endl;
     origin.simtime = atSimtime;
@@ -113,9 +110,9 @@ void SettableGranularityClock::processCommand(const cXMLElement& node)
         throw cRuntimeError("invalid command node for %s at %s", getClassName(), node.getSourceLocation());
 }
 
-void SettableGranularityClock::arrived(ClockEvent *msg)
+void SettableGranularityClock::handleClockEventOccured(ClockEvent *msg)
 {
-    GranularityClock::arrived(msg);
+    GranularityClock::handleClockEventOccured(msg);
     std::remove(timers.begin(), timers.end(), msg);
 }
 

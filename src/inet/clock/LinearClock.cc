@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#include "inet/common/clock/LinearClock.h"
+#include "inet/clock/LinearClock.h"
 
 namespace inet {
 
@@ -21,18 +21,22 @@ Define_Module(LinearClock);
 
 void LinearClock::initialize()
 {
-    origin.simtime = simTime();
-    simtime_t clock = par("timeShift");
-    origin.clocktime = ClockTime::from(simTime() + clock);
-    driftRate = par("driftRate").doubleValue() / 1e6;
+    origin.simtime = simTime(); // 1000
+    simtime_t timeShift = par("timeShift"); // 100 the simulation time when the clock's value is zero
+    // TODO: is this actually false? the simulation time when the clock's value is zero
+    origin.clocktime = ClockTime::from(simTime() + timeShift); // 1000 + 100 = 1100 -> when clock is 0 then simtime is 100?
+    driftRate = par("driftRate").doubleValue() / 1e6; // THERE'S A DRIFT!
+    // why not the following?
+    origin.simtime = timeShift;
+    origin.clocktime = 0;
 }
 
-clocktime_t LinearClock::fromSimTime(simtime_t t) const
+clocktime_t LinearClock::computeClockTimeFromSimTime(simtime_t t) const
 {
     return origin.clocktime + ClockTime::from((t - origin.simtime) * (1.0 + driftRate));
 }
 
-simtime_t LinearClock::toSimTime(clocktime_t clock) const
+simtime_t LinearClock::computeSimTimeFromClockTime(clocktime_t clock) const
 {
     return origin.simtime + (clock - origin.clocktime).asSimTime() / (1.0 + driftRate);
 }

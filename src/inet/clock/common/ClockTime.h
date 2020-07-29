@@ -23,8 +23,6 @@ namespace inet {
 #ifndef WITH_CLOCK_SUPPORT
 
 #define ClockTime SimTime
-#define CLOCKTIME_AS_SIMTIME(x)  (x)
-#define SIMTIME_AS_CLOCKTIME(x)  (x)
 
 #else
 
@@ -359,17 +357,6 @@ inline std::ostream& operator<<(std::ostream& os, const ClockTime& x)
     char buf[64]; char *endp;
     return os << ClockTime::ttoa(buf, x.raw(), ClockTime::getScaleExp(), endp);
 }
-
-/**
- * Conversion.
- */
-#define CLOCKTIME_AS_SIMTIME(x)  (x).asSimTime()
-
-/**
- * Conversion.
- */
-#define SIMTIME_AS_CLOCKTIME(x)  ClockTime::from(x)
-
 
 #endif // WITH_CLOCK_SUPPORT
 

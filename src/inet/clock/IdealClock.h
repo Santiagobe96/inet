@@ -13,25 +13,24 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef __INET_CLOCKBASE_H
-#define __INET_CLOCKBASE_H
+#ifndef __INET_IDEALCLOCK_H
+#define __INET_IDEALCLOCK_H
 
-#include "inet/common/INETDefs.h"
+#include "inet/clock/base/ClockBase.h"
 
 namespace inet {
 
-class INET_API ClockBase : public cSimpleModule
+/**
+ * Models a clock where the clock time is identical to the simulation time.
+ */
+class INET_API IdealClock : public ClockBase
 {
-  protected:
-    inline cSimpleModule *getTargetModule() const {
-        cSimpleModule *target = getSimulation()->getContextSimpleModule();
-        if (target == nullptr)
-            throw cRuntimeError("scheduleAt()/cancelEvent() must be called with a simple module in context");
-        return target;
-    }
+  public:
+    virtual clocktime_t computeClockTimeFromSimTime(simtime_t t) const override;
+    virtual simtime_t computeSimTimeFromClockTime(clocktime_t t) const override;
 };
 
 } // namespace inet
 
-#endif // ifndef __INET_CLOCKBASE_H
+#endif // ifndef __INET_IDEALCLOCK_H
 

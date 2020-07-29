@@ -15,14 +15,14 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __INET_CLOCKUSINGMODULEMIXINIMPL_H
-#define __INET_CLOCKUSINGMODULEMIXINIMPL_H
+#ifndef __INET_CLOCKUSERMODULEMIXINIMPL_H
+#define __INET_CLOCKUSERMODULEMIXINIMPL_H
 
-#include "inet/common/base/ClockUsingModuleMixin.h"
-#include "inet/common/clock/common/ClockTime.h"
+#include "ClockUserModuleMixin.h"
+#include "inet/clock/common/ClockTime.h"
 
 #ifdef WITH_CLOCK_SUPPORT
-#include "inet/common/clock/contract/IClock.h"
+#include "inet/clock/contract/IClock.h"
 #endif
 
 namespace inet {
@@ -30,7 +30,7 @@ namespace inet {
 #ifdef WITH_CLOCK_SUPPORT
 
 template<typename T>
-IClock *ClockUsingModuleMixin<T>::findClockModule() const {
+IClock *ClockUserModuleMixin<T>::findClockModule() const {
     if (T::hasPar("clockModule")) {
         const char *clockModulePath = T::par("clockModule");
         if (*clockModulePath) {
@@ -47,7 +47,7 @@ IClock *ClockUsingModuleMixin<T>::findClockModule() const {
 }
 
 template<typename T>
-ClockUsingModuleMixin<T>::~ClockUsingModuleMixin() {
+ClockUserModuleMixin<T>::~ClockUserModuleMixin() {
 #ifndef NDEBUG
     if (clock != nullptr && !usedClockApi)
         std::cerr << "*** Warning: Class '" << className << "' has a clock module set but does not use the clock API (at least in this simulation)\n";
@@ -57,7 +57,7 @@ ClockUsingModuleMixin<T>::~ClockUsingModuleMixin() {
 }
 
 template<typename T>
-void ClockUsingModuleMixin<T>::initialize(int stage) {
+void ClockUserModuleMixin<T>::initialize(int stage) {
     T::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
         clock = findClockModule();
@@ -68,7 +68,7 @@ void ClockUsingModuleMixin<T>::initialize(int stage) {
 }
 
 template<typename T>
-void ClockUsingModuleMixin<T>::scheduleClockEventAt(clocktime_t t, ClockEvent *msg) {
+void ClockUserModuleMixin<T>::scheduleClockEventAt(clocktime_t t, ClockEvent *msg) {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif
@@ -79,7 +79,7 @@ void ClockUsingModuleMixin<T>::scheduleClockEventAt(clocktime_t t, ClockEvent *m
 }
 
 template<typename T>
-void ClockUsingModuleMixin<T>::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) {
+void ClockUserModuleMixin<T>::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif
@@ -90,7 +90,7 @@ void ClockUsingModuleMixin<T>::scheduleClockEventAfter(clocktime_t t, ClockEvent
 }
 
 template<typename T>
-cMessage *ClockUsingModuleMixin<T>::cancelClockEvent(ClockEvent *msg) {
+cMessage *ClockUserModuleMixin<T>::cancelClockEvent(ClockEvent *msg) {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif
@@ -101,7 +101,7 @@ cMessage *ClockUsingModuleMixin<T>::cancelClockEvent(ClockEvent *msg) {
 }
 
 template<typename T>
-void ClockUsingModuleMixin<T>::cancelAndDeleteClockEvent(ClockEvent *msg) {
+void ClockUserModuleMixin<T>::cancelAndDeleteClockEvent(ClockEvent *msg) {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif
@@ -112,7 +112,7 @@ void ClockUsingModuleMixin<T>::cancelAndDeleteClockEvent(ClockEvent *msg) {
 }
 
 template<typename T>
-clocktime_t ClockUsingModuleMixin<T>::getClockTime() const {
+clocktime_t ClockUserModuleMixin<T>::getClockTime() const {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif
@@ -123,7 +123,7 @@ clocktime_t ClockUsingModuleMixin<T>::getClockTime() const {
 }
 
 template<typename T>
-clocktime_t ClockUsingModuleMixin<T>::getArrivalClockTime(ClockEvent *msg) const {
+clocktime_t ClockUserModuleMixin<T>::getArrivalClockTime(ClockEvent *msg) const {
 #ifndef NDEBUG
     usedClockApi = true;
 #endif
@@ -137,5 +137,5 @@ clocktime_t ClockUsingModuleMixin<T>::getArrivalClockTime(ClockEvent *msg) const
 
 } // namespace inet
 
-#endif // ifndef __INET_CLOCKUSINGMODULEMIXINIMPL_H
+#endif // ifndef __INET_CLOCKUSERMODULEMIXINIMPL_H
 

@@ -13,32 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-cplusplus {{
-#include "inet/common/clock/common/ClockTime.h"
-}}
+package inet.clock;
 
-namespace inet;
-
-class ClockTime
+//
+// Models a settable clock where the drift rate is constant.
+//
+simple SettableLinearClock extends LinearClock
 {
-    @existingClass;
-    @overwritePreviousDefinition;
-    @descriptor(false);
-    @opaque;
-    @byValue;
-    @cppType(inet::common::ClockTime);
-    @fromString(inet::common::ClockTime::parse($)); @toString($.str());
-    @defaultValue(CLOCKTIME_ZERO);
+    parameters:
+        @class(SettableLinearClock);
 }
 
-class clocktime_t
-{
-    @existingClass;
-    @overwritePreviousDefinition;
-    @descriptor(false);
-    @opaque;
-    @byValue;
-    @cppType(inet::clocktime_t);
-    @fromString(inet::common::ClockTime::parse($)); @toString($.str());
-    @defaultValue(CLOCKTIME_ZERO);
-}

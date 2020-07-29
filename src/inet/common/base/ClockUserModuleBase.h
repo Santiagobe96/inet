@@ -15,18 +15,19 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __INET_CLOCKUSINGMODULEBASE_H
-#define __INET_CLOCKUSINGMODULEBASE_H
+#ifndef __INET_CLOCKUSERMODULEBASE_H
+#define __INET_CLOCKUSERMODULEBASE_H
 
-#include "inet/common/base/ClockUsingModuleMixin.h"
+#include "inet/common/base/ClockUserModuleMixin.h"
 
 namespace inet {
 
-class INET_API ClockUsingModuleBase : public ClockUsingModuleMixin<cSimpleModule>
+// TODO: ClockUserModuleBase
+class INET_API ClockUserModuleBase : public ClockUserModuleMixin<cSimpleModule>
 {
 };
 
 } // namespace inet
 
-#endif // ifndef __INET_CLOCKUSINGMODULEBASE_H
+#endif // ifndef __INET_CLOCKUSERMODULEBASE_H
 

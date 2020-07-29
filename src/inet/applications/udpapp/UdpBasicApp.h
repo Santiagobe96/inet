@@ -24,7 +24,7 @@
 #include "inet/common/INETDefs.h"
 
 #include "inet/applications/base/ApplicationBase.h"
-#include "inet/common/base/ClockUsingModuleMixin.h"
+#include "inet/common/base/ClockUserModuleMixin.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 
 namespace inet {
@@ -32,7 +32,7 @@ namespace inet {
 /**
  * UDP application. See NED for more info.
  */
-class INET_API UdpBasicApp : public ClockUsingModuleMixin<ApplicationBase>, public UdpSocket::ICallback
+class INET_API UdpBasicApp : public ClockUserModuleMixin<ApplicationBase>, public UdpSocket::ICallback
 {
   protected:
     enum SelfMsgKinds { START = 1, SEND, STOP };

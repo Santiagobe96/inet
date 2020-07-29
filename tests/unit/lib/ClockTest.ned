@@ -1,6 +1,6 @@
 package inet.test.unittest.lib;
 
-import inet.common.clock.contract.IClock;
+import inet.clock.contract.IClock;
 import inet.common.scenario.ScenarioManager;
 
 simple ClockTestApp

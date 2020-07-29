@@ -13,24 +13,15 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef __INET_IDEALCLOCK_H
-#define __INET_IDEALCLOCK_H
-
-#include "inet/common/clock/base/PredictableClockBase.h"
+#include "inet/clock/common/ClockTime.h"
 
 namespace inet {
 
-/**
- * Models a clock where the clock time is identical to the simulation time.
- */
-class INET_API IdealClock : public PredictableClockBase
-{
-  public:
-    virtual clocktime_t fromSimTime(simtime_t t) const override;
-    virtual simtime_t toSimTime(clocktime_t t) const override;
-};
+#ifdef WITH_CLOCK_SUPPORT
+
+const ClockTime ClockTime::ZERO;
+
+#endif // WITH_CLOCK_SUPPORT
 
 } // namespace inet
-
-#endif // ifndef __INET_IDEALCLOCK_H
 

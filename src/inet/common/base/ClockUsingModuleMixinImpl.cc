@@ -16,7 +16,7 @@
 //
 
 #include "inet/applications/base/ApplicationBase.h"
-#include "inet/common/base/ClockUsingModuleMixinImpl.h"
+#include "ClockUserModuleMixinImpl.h"
 #ifdef WITH_QUEUEING
 #include "inet/queueing/base/PacketGateBase.h"
 #include "inet/queueing/base/PacketProcessorBase.h"
@@ -26,13 +26,13 @@
 namespace inet {
 
 #ifdef WITH_CLOCK_SUPPORT
-template class ClockUsingModuleMixin<cSimpleModule>;
-template class ClockUsingModuleMixin<ApplicationBase>;
+template class ClockUserModuleMixin<cSimpleModule>;
+template class ClockUserModuleMixin<ApplicationBase>;
 
 #ifdef WITH_QUEUEING
-template class ClockUsingModuleMixin<queueing::PacketProcessorBase>;
-template class ClockUsingModuleMixin<queueing::PacketPusherBase>;
-template class ClockUsingModuleMixin<queueing::PacketGateBase>;
+template class ClockUserModuleMixin<queueing::PacketProcessorBase>;
+template class ClockUserModuleMixin<queueing::PacketPusherBase>;
+template class ClockUserModuleMixin<queueing::PacketGateBase>;
 #endif // #ifdef WITH_QUEUEING
 
 #endif // #ifdef WITH_CLOCK_SUPPORT

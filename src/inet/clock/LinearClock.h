@@ -13,21 +13,34 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#include "inet/common/clock/IdealClock.h"
+#ifndef __INET_LINEARCLOCK_H
+#define __INET_LINEARCLOCK_H
+
+#include "inet/clock/base/ClockBase.h"
 
 namespace inet {
 
-Define_Module(IdealClock);
-
-clocktime_t IdealClock::fromSimTime(simtime_t t) const
+/**
+ * Models a clock with a constant clock drift rate.
+ */
+class INET_API LinearClock : public ClockBase
 {
-    return ClockTime::from(t);
-}
+  protected:
+    // TODO: inline? why do we need this struct? there's no reason
+    struct TimePair {
+        simtime_t simtime;
+        clocktime_t clocktime;
+    };
+    TimePair origin;
+    double driftRate;
 
-simtime_t IdealClock::toSimTime(clocktime_t clock) const
-{
-    return clock.asSimTime();
-}
+  public:
+    virtual void initialize() override;
+    virtual clocktime_t computeClockTimeFromSimTime(simtime_t t) const override;
+    virtual simtime_t computeSimTimeFromClockTime(clocktime_t t) const override;
+};
 
 } // namespace inet
+
+#endif // ifndef __INET_LINEARCLOCK_H
 

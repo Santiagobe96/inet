@@ -1,4 +1,6 @@
 //
+// Copyright (C) OpenSim Ltd.
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -13,19 +15,21 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-package inet.common.clock;
+package inet.clock;
 
-import inet.common.clock.contract.IClock;
+import inet.clock.contract.IClock;
 
 //
 // Models a clock where the drift rate is constant.
 //
-simple SettableGranularityClock like IClock
+simple GranularityClock like IClock
 {
     parameters:
-        double timeShift @unit(s) = default(0s); // set the clock time to simtime + timeShift at initialize
+        // TODO: timeShift same as SettableLinearClock
+        double timeShift @unit(s) = default(0s); // set the clock time to current simtime + timeShift value at the initialize
+        // TODO: rename to tickInterval?
+        double granularity @unit(s) = default(1ms); // clock granularity, 0 means the simtime precision
         double driftRate @unit(ppm) = default(0ppm); // clock precision, expressed as a ratio in parts per million
-        double granularity @unit(s) = default(1ms);     // clock granularity, 0 means the simtime precision
         @display("i=block/timer");
 }
 

@@ -1,6 +1,4 @@
 //
-// Copyright (C) OpenSim Ltd.
-//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -15,34 +13,42 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef __INET_GranularityClock_H
-#define __INET_GranularityClock_H
+#ifndef __INET_SettableGranularityClock_H
+#define __INET_SettableGranularityClock_H
 
-#include "inet/common/clock/LinearClock.h"
+#include "inet/clock/GranularityClock.h"
+#include "inet/common/scenario/IScriptable.h"
 
 namespace inet {
 
 /**
- * Models a clock with a constant granularity.
+ * Models a clock with a constant clock drift rate.
  */
-class INET_API GranularityClock : public LinearClock
+// TODO: we should not copy the code from SettableLinearClock here
+class INET_API SettableGranularityClock : public GranularityClock, public IScriptable
 {
+  private:
+    std::vector<ClockEvent*> timers;
+
   protected:
-    clocktime_t granularity;
-    int64_t granularityRaw;    // cached granularity.raw()
+    void purgeTimers();
+    void rescheduleTimers(clocktime_t clockDelta);
+
+    // IScriptable implementation
+    virtual void processCommand(const cXMLElement& node) override;
 
   public:
-    virtual void initialize() override;
-
-    virtual clocktime_t granularize(clocktime_t clock) const;
-    virtual clocktime_t granularizeUp(clocktime_t clock) const;
-    virtual clocktime_t fromSimTime(simtime_t t) const override;
-    virtual simtime_t toSimTime(clocktime_t t) const override;
     virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) override;
     virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) override;
+    virtual ClockEvent *cancelClockEvent(ClockEvent *msg) override;
+
+    virtual void setDriftRate(double newDriftRate);
+    virtual void setClockTime(clocktime_t t);
+
+    virtual void handleClockEventOccured(ClockEvent *msg) override;
 };
 
 } // namespace inet
 
-#endif // ifndef __INET_GranularityClock_H
+#endif // ifndef __INET_SettableGranularityClock_H
 

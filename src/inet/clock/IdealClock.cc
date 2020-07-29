@@ -13,18 +13,21 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-package inet.common.clock.contract;
+#include "inet/clock/IdealClock.h"
 
-//
-// This module interface is implemented by clock models. For example, having a
-// clock in the model of a network device and using it for all timing (instead
-// of the standard OMNeT++ simulation time) allows for modeling clock skew and
-// clock drift. Clocks are typically simple modules, and are used by other modules
-// via direct C++ method calls.
-//
-moduleinterface IClock
+namespace inet {
+
+Define_Module(IdealClock);
+
+clocktime_t IdealClock::computeClockTimeFromSimTime(simtime_t t) const
 {
-    parameters:
-        @display("i=block/timer");
+    return ClockTime::from(t);
 }
+
+simtime_t IdealClock::computeSimTimeFromClockTime(clocktime_t clock) const
+{
+    return clock.asSimTime();
+}
+
+} // namespace inet
 

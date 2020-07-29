@@ -15,19 +15,19 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __INET_CLOCKUSINGMODULEMIXIN_H
-#define __INET_CLOCKUSINGMODULEMIXIN_H
+#ifndef __INET_CLOCKUSERMODULEMIXIN_H
+#define __INET_CLOCKUSERMODULEMIXIN_H
 
-#include "inet/common/clock/common/ClockTime.h"
+#include "inet/clock/common/ClockTime.h"
 
 #ifdef WITH_CLOCK_SUPPORT
-#include "inet/common/clock/contract/IClock.h"
+#include "inet/clock/contract/IClock.h"
 #endif
 
 namespace inet {
 
 template<typename T>
-class INET_API ClockUsingModuleMixin : public T
+class INET_API ClockUserModuleMixin : public T
 {
 #ifdef WITH_CLOCK_SUPPORT
   protected:
@@ -42,9 +42,9 @@ class INET_API ClockUsingModuleMixin : public T
     virtual IClock *findClockModule() const;
 
   public:
-    virtual ~ClockUsingModuleMixin();
+    virtual ~ClockUserModuleMixin();
 
-    virtual void initialize(int stage);
+    virtual void initialize(int stage) override;
 
     virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg);
     virtual void scheduleClockEventAfter(clocktime_t delay, ClockEvent *msg);
@@ -74,5 +74,5 @@ class INET_API ClockUsingModuleMixin : public T
 
 } // namespace inet
 
-#endif // ifndef __INET_CLOCKUSINGMODULEMIXIN_H
+#endif // ifndef __INET_CLOCKUSERMODULEMIXIN_H
 
