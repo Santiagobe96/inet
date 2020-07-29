@@ -17,12 +17,12 @@
 
 namespace inet {
 
-clocktime_t ClockBase::convertSimTime2ClockTime(simtime_t time) const
+clocktime_t ClockBase::convertIntervalToClockTime(simtime_t time) const
 {
     return ClockTime::from(time);
 }
 
-simtime_t ClockBase::convertClockTime2SimTime(clocktime_t time) const
+simtime_t ClockBase::convertClockTimeToInterval(clocktime_t time) const
 {
     return time.asSimTime();
 }
@@ -36,7 +36,7 @@ void ClockBase::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
 {
     ASSERT(msg->getClock() == nullptr);
     if (t < getClockTime())
-        throw cRuntimeError("TODO");
+        throw cRuntimeError("Cannot schedule clock event in the past");
     cSimpleModule *targetModule = getTargetModule();
     msg->setClock(this);
     msg->setRelative(false);
@@ -44,19 +44,19 @@ void ClockBase::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
     targetModule->scheduleAt(computeSimTimeFromClockTime(t), msg);
 }
 
-void ClockBase::scheduleClockEventAfter(clocktime_t clockDelay, ClockEvent *msg)
+void ClockBase::scheduleClockEventAfter(clocktime_t clockTimeDelay, ClockEvent *msg)
 {
     ASSERT(msg->getClock() == nullptr);
-    if (clockDelay < 0)
-        throw cRuntimeError("TODO");
+    if (clockTimeDelay < 0)
+        throw cRuntimeError("Cannot schedule clock event with negative delay");
     cSimpleModule *targetModule = getTargetModule();
     msg->setClock(this);
     msg->setRelative(true);
     clocktime_t nowClock = getClockTime();
-    clocktime_t arrivalClockTime = nowClock + clockDelay;
+    clocktime_t arrivalClockTime = nowClock + clockTimeDelay;
     msg->setArrivalClockTime(arrivalClockTime);
-    simtime_t delay = clockDelay.isZero() ? SIMTIME_ZERO : computeSimTimeFromClockTime(arrivalClockTime) - simTime();
-    targetModule->scheduleAfter(delay, msg);
+    simtime_t simTimeDelay = clockTimeDelay.isZero() ? SIMTIME_ZERO : computeSimTimeFromClockTime(arrivalClockTime) - simTime();
+    targetModule->scheduleAfter(simTimeDelay, msg);
 }
 
 ClockEvent *ClockBase::cancelClockEvent(ClockEvent *msg)

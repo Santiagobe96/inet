@@ -15,21 +15,21 @@
 
 package inet.clock;
 
+import inet.clock.base.ClockBase;
 import inet.clock.contract.IClock;
+import inet.clock.contract.IOscillator;
 
 //
 // Models a clock where the drift rate is constant.
 //
-simple LinearClock like IClock
+module LinearClock extends ClockBase like IClock
 {
     parameters:
-        // TODO: confusing name, shift in which direction? rename to zeroClockTime? what about dynamically created clocks?
-        // TODO: replace this with the next
-        double timeShift @unit(s) = default(0s); // the simulation time when the clock's value is zero
-        // TODO: find better parameters!
-        double initialClockTime;
-        double clockStartValue @unit(s); // clock value at zero simulation time or module creation time?
-        double driftRate @unit(ppm) = default(0ppm); // clock precision, expressed as a ratio in parts per million
-        @display("i=block/timer");
+        double initialClockTime @unit(s) = default(0s); // clock value at the simulation time when the module is initialized
+        @class(LinearClock);
+    submodules:
+        oscillator: <default("LinearOscillator")> like IOscillator if typename != "" {
+            @display("p=100,100");
+        }
 }
 

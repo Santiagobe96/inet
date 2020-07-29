@@ -21,98 +21,63 @@ namespace inet {
 
 Define_Module(SettableLinearClock);
 
-void SettableLinearClock::scheduleClockEventAt(clocktime_t t, ClockEvent *msg)
+void SettableLinearClock::scheduleClockEventAt(clocktime_t t, ClockEvent *event)
 {
-    LinearClock::scheduleClockEventAt(t, msg);
-    events.push_back(msg);
+    LinearClock::scheduleClockEventAt(t, event);
+    events.push_back(event);
 }
 
-void SettableLinearClock::scheduleClockEventAfter(clocktime_t t, ClockEvent *msg)
+void SettableLinearClock::scheduleClockEventAfter(clocktime_t t, ClockEvent *event)
 {
-    LinearClock::scheduleClockEventAfter(t, msg);
-    events.push_back(msg);
+    LinearClock::scheduleClockEventAfter(t, event);
+    events.push_back(event);
 }
 
-ClockEvent *SettableLinearClock::cancelClockEvent(ClockEvent *msg)
+ClockEvent *SettableLinearClock::cancelClockEvent(ClockEvent *event)
 {
-    events.erase(std::remove(events.begin(), events.end(), msg), events.end());
-    return static_cast<ClockEvent *>(getTargetModule()->cancelEvent(msg));
-}
-
-void SettableLinearClock::rescheduleEvents(clocktime_t clockDelta)
-{
-    // TODO: split into two functions? separate the calls from setClockTime (doesn't affect relative clocks) and setDriftRate
-    simtime_t currentSimTime = simTime();
-    for (auto event : events) {
-        cSimpleModule *targetModule = check_and_cast<cSimpleModule *>(event->getArrivalModule());
-        if (event->getRelative()) {
-            // TODO: this may result in the rescheduling of events due to imprecision of the calculation if clockDelta != 0
-            event->setArrivalClockTime(event->getArrivalClockTime() + clockDelta);
-            simtime_t simTimeDelay = computeSimTimeFromClockTime(event->getArrivalClockTime()) - currentSimTime;
-            if (simTimeDelay < 0) {
-                switch (event->getExpiredClockEventHandlingMode()) {
-                    case EXECUTE:
-                        EV_WARN << "Executing expired clock event " << event->getName() << " immediately.\n";
-                        simTimeDelay = 0;
-                        break;
-                    case SKIP:
-                        EV_WARN << "Skipping expired clock event " << event->getName() << ".\n";
-                        cancelClockEvent(event);
-                        continue;
-                    case ERROR:
-                        throw cRuntimeError("Clock event expired");
-                    default:
-                        throw cRuntimeError("Unknown expired clock event handling mode");
-                }
-            }
-            cContextSwitcher contextSwitcher(targetModule);
-            targetModule->rescheduleAfter(simTimeDelay, event);
-        }
-        else {
-            clocktime_t arrivalClockTime = event->getArrivalClockTime();
-            simtime_t arrivalSimTime = computeSimTimeFromClockTime(arrivalClockTime);
-            if (arrivalSimTime < currentSimTime) {
-                switch (event->getExpiredClockEventHandlingMode()) {
-                    case EXECUTE:
-                        EV_WARN << "Executing expired clock event " << event->getName() << " immediately.\n";
-                        arrivalSimTime = currentSimTime;
-                        break;
-                    case SKIP:
-                        EV_WARN << "Skipping expired clock event " << event->getName() << ".\n";
-                        cancelClockEvent(event);
-                        continue;
-                    case ERROR:
-                        throw cRuntimeError("Clock event expired");
-                    default:
-                        throw cRuntimeError("Unknown expired clock event handling mode");
-                }
-            }
-            cContextSwitcher contextSwitcher(targetModule);
-            targetModule->rescheduleAt(arrivalSimTime, event);
-        }
-    }
-}
-
-void SettableLinearClock::setDriftRate(double newDriftRate)
-{
-    simtime_t currentSimTime = simTime();
-    clocktime_t currentClockTime = getClockTime();
-    EV_DEBUG << "Setting the clock drift rate from " << driftRate << " to " << newDriftRate << " at simtime " << currentSimTime << " and clock time " << currentClockTime <<  ".\n";
-    // modify 'origin' to current values before change the driftRate
-    origin.simtime = currentSimTime;
-    origin.clocktime = currentClockTime;
-    driftRate = newDriftRate;
-    rescheduleEvents(CLOCKTIME_ZERO);
+    events.erase(std::remove(events.begin(), events.end(), event), events.end());
+    return static_cast<ClockEvent *>(getTargetModule()->cancelEvent(event));
 }
 
 void SettableLinearClock::setClockTime(clocktime_t newClockTime)
 {
+    Enter_Method("setClockTime");
     clocktime_t oldClockTime = getClockTime();
-    simtime_t currentSimTime = simTime();
-    EV_DEBUG << "Setting the clock time from " << oldClockTime << " to " << newClockTime << " at simtime " << currentSimTime << ".\n";
-    origin.simtime = currentSimTime;
-    origin.clocktime = newClockTime;
-    rescheduleEvents(newClockTime - oldClockTime);
+    if (newClockTime != oldClockTime) {
+        simtime_t currentSimTime = simTime();
+        EV_DEBUG << "Setting the clock time from " << oldClockTime << " to " << newClockTime << " at simtime " << currentSimTime << ".\n";
+        originSimTime = currentSimTime;
+        originClockTime = newClockTime;
+        clocktime_t clockDelta = newClockTime - oldClockTime;
+        for (auto event : events) {
+            if (event->getRelative())
+                // NOTE: the simulation time of event execution is affected
+                event->setArrivalClockTime(event->getArrivalClockTime() + clockDelta);
+            else {
+                clocktime_t arrivalClockTime = event->getArrivalClockTime();
+                simtime_t arrivalSimTime = computeSimTimeFromClockTime(arrivalClockTime);
+                if (arrivalSimTime < currentSimTime) {
+                    switch (event->getOverdueClockEventHandlingMode()) {
+                        case EXECUTE:
+                            EV_WARN << "Executing overdue clock event " << event->getName() << " immediately.\n";
+                            arrivalSimTime = currentSimTime;
+                            break;
+                        case SKIP:
+                            EV_WARN << "Skipping overdue clock event " << event->getName() << ".\n";
+                            cancelClockEvent(event);
+                            continue;
+                        case ERROR:
+                            throw cRuntimeError("Clock event is overdue");
+                        default:
+                            throw cRuntimeError("Unknown overdue clock event handling mode");
+                    }
+                }
+                cSimpleModule *targetModule = check_and_cast<cSimpleModule *>(event->getArrivalModule());
+                cContextSwitcher contextSwitcher(targetModule);
+                targetModule->rescheduleAt(arrivalSimTime, event);
+            }
+        }
+    }
 }
 
 void SettableLinearClock::processCommand(const cXMLElement& node)
@@ -123,19 +88,72 @@ void SettableLinearClock::processCommand(const cXMLElement& node)
             clocktime_t t = ClockTime::parse(clockTimeStr);
             setClockTime(t);
         }
-        if (const char *driftRateStr = node.getAttribute("driftRate")) {
-            double rate = strtod(driftRateStr, nullptr);
-            setDriftRate(rate);
-        }
     }
     else
         throw cRuntimeError("Invalid command: %s", node.getTagName());
 }
 
-void SettableLinearClock::handleClockEventOccured(ClockEvent *msg)
+void SettableLinearClock::handleClockEventOccured(ClockEvent *event)
 {
-    LinearClock::handleClockEventOccured(msg);
-    events.erase(std::remove(events.begin(), events.end(), msg), events.end());
+    LinearClock::handleClockEventOccured(event);
+    events.erase(std::remove(events.begin(), events.end(), event), events.end());
+}
+
+void SettableLinearClock::receiveSignal(cComponent *source, int signal, cObject *obj, cObject *details)
+{
+    if (signal == IOscillator::driftRateChangedSignal) {
+        simtime_t currentSimTime = simTime();
+        clocktime_t currentClockTime = getClockTime();
+        // modify 'origin' to current values before change the driftRate
+        originSimTime = currentSimTime;
+        originClockTime = currentClockTime;
+        for (auto event : events) {
+            cSimpleModule *targetModule = check_and_cast<cSimpleModule *>(event->getArrivalModule());
+            if (event->getRelative()) {
+                simtime_t simTimeDelay = computeSimTimeFromClockTime(event->getArrivalClockTime()) - currentSimTime;
+                if (simTimeDelay < 0) {
+                    switch (event->getOverdueClockEventHandlingMode()) {
+                        case EXECUTE:
+                            EV_WARN << "Executing overdue clock event " << event->getName() << " immediately.\n";
+                            simTimeDelay = 0;
+                            break;
+                        case SKIP:
+                            EV_WARN << "Skipping overdue clock event " << event->getName() << ".\n";
+                            cancelClockEvent(event);
+                            continue;
+                        case ERROR:
+                            throw cRuntimeError("Clock event is overdue");
+                        default:
+                            throw cRuntimeError("Unknown overdue clock event handling mode");
+                    }
+                }
+                cContextSwitcher contextSwitcher(targetModule);
+                targetModule->rescheduleAfter(simTimeDelay, event);
+            }
+            else {
+                clocktime_t arrivalClockTime = event->getArrivalClockTime();
+                simtime_t arrivalSimTime = computeSimTimeFromClockTime(arrivalClockTime);
+                if (arrivalSimTime < currentSimTime) {
+                    switch (event->getOverdueClockEventHandlingMode()) {
+                        case EXECUTE:
+                            EV_WARN << "Executing overdue clock event " << event->getName() << " immediately.\n";
+                            arrivalSimTime = currentSimTime;
+                            break;
+                        case SKIP:
+                            EV_WARN << "Skipping overdue clock event " << event->getName() << ".\n";
+                            cancelClockEvent(event);
+                            continue;
+                        case ERROR:
+                            throw cRuntimeError("Clock event is overdue");
+                        default:
+                            throw cRuntimeError("Unknown overdue clock event handling mode");
+                    }
+                }
+                cContextSwitcher contextSwitcher(targetModule);
+                targetModule->rescheduleAt(arrivalSimTime, event);
+            }
+        }
+    }
 }
 
 } // namespace inet

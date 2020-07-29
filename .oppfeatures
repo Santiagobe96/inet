@@ -7,7 +7,7 @@
         requires = ""
         labels = ""
         nedPackages = "
-                       inet.common.clock
+                       inet.clock
                       "
         extraSourceFolders = ""
         compileFlags = "-DWITH_CLOCK_SUPPORT"

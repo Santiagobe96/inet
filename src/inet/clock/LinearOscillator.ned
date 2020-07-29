@@ -15,17 +15,13 @@
 
 package inet.clock;
 
-import inet.clock.base.ClockBase;
-import inet.clock.contract.IClock;
+import inet.clock.contract.IOscillator;
 
-//
-// Models a clock where the drift rate is constant.
-//
-module SettableGranularityClock extends ClockBase like IClock
+simple LinearOscillator like IOscillator
 {
     parameters:
-        double timeShift @unit(s) = default(0s); // set the clock time to simtime + timeShift at initialize
-        double driftRate @unit(ppm) = default(0ppm); // clock precision, expressed as a ratio in parts per million
-        double granularity @unit(s) = default(1ms);     // clock granularity, 0 means the simtime precision
+        double nominalTickLength @unit(s);
+        double driftRate @unit(ppm) = default(0ppm); // expressed as a ratio in parts per million
+        @display("i=block/tunnel");
 }
 

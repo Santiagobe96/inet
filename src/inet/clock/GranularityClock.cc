@@ -47,7 +47,7 @@ clocktime_t GranularityClock::granularizeUp(clocktime_t clock) const
 // TODO: are these computeSimTimeFromClockTime/computeClockTimeFromSimTime consistent wrt. granularity?
 simtime_t GranularityClock::computeSimTimeFromClockTime(clocktime_t clock) const
 {
-    return origin.simtime + (granularize(clock) - origin.clocktime).asSimTime() / (1.0 + driftRate);
+    // TODO: return origin.simtime + (granularize(clock) - origin.clocktime).asSimTime() / (1.0 + driftRate);
 }
 
 clocktime_t GranularityClock::computeClockTimeFromSimTime(simtime_t t) const

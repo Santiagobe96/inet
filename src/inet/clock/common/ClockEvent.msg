@@ -41,7 +41,7 @@ message ClockEvent
     IClock *clock = nullptr;
     bool relative = false;
     clocktime_t arrivalClockTime = -1;
-    OverdueClockEventHandlingMode expiredClockEventHandlingMode = ERROR;
+    OverdueClockEventHandlingMode overdueClockEventHandlingMode = ERROR;
 }
 
 cplusplus(ClockEvent) {{

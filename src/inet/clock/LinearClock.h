@@ -17,6 +17,7 @@
 #define __INET_LINEARCLOCK_H
 
 #include "inet/clock/base/ClockBase.h"
+#include "inet/clock/contract/IOscillator.h"
 
 namespace inet {
 
@@ -26,16 +27,17 @@ namespace inet {
 class INET_API LinearClock : public ClockBase
 {
   protected:
-    // TODO: inline? why do we need this struct? there's no reason
-    struct TimePair {
-        simtime_t simtime;
-        clocktime_t clocktime;
-    };
-    TimePair origin;
-    double driftRate;
+    IOscillator *oscillator = nullptr;
+
+    simtime_t originSimTime; // the simulation time when the the originClockTick was set at some oscillator tick in the past
+    int64_t originClockTick; // the value of the clock internal register representing the time as known by the clock in oscillator nominal tick intervals
+    clocktime_t originClockTime;
+    clocktime_t originClockOffset;
+
+  protected:
+    virtual void initialize() override;
 
   public:
-    virtual void initialize() override;
     virtual clocktime_t computeClockTimeFromSimTime(simtime_t t) const override;
     virtual simtime_t computeSimTimeFromClockTime(clocktime_t t) const override;
 };

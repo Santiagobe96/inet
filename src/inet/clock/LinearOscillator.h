@@ -13,41 +13,42 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#ifndef __INET_SettableGranularityClock_H
-#define __INET_SettableGranularityClock_H
+#ifndef __INET_LINEAROSCILLATOR_H
+#define __INET_LINEAROSCILLATOR_H
 
-#include "inet/clock/GranularityClock.h"
+#include "inet/clock/contract/IOscillator.h"
+#include "inet/common/INETMath.h"
 #include "inet/common/scenario/IScriptable.h"
 
 namespace inet {
 
-/**
- * Models a clock with a constant clock drift rate.
- */
-// TODO: we should not copy the code from SettableLinearClock here
-class INET_API SettableGranularityClock : public GranularityClock, public IScriptable
+class INET_API LinearOscillator : public cSimpleModule, public IOscillator, public IScriptable
 {
-  private:
-    std::vector<ClockEvent*> timers;
+  protected:
+    simtime_t nominalTickLength;
+    double driftRate = NaN;
+    simtime_t baseTickTime;
+    simtime_t lastTickTime;
+    simtime_t previousTickDistanceAtLastStateChange;
+    simtime_t nextTickDistanceAtLastStateChange;
 
   protected:
-    void purgeTimers();
-    void rescheduleTimers(clocktime_t clockDelta);
+    virtual void initialize() override;
 
     // IScriptable implementation
     virtual void processCommand(const cXMLElement& node) override;
 
   public:
-    virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) override;
-    virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) override;
-    virtual ClockEvent *cancelClockEvent(ClockEvent *msg) override;
+    virtual simtime_t getNominalTickLength() const override { return nominalTickLength; }
 
-    virtual void setClockTime(clocktime_t t);
+    virtual void setDriftRate(double driftRate);
 
-    virtual void handleClockEventOccured(ClockEvent *msg) override;
+    virtual int64_t computeClockTicksForInterval(simtime_t timeInterval) const override;
+
+    virtual simtime_t computeIntervalForClockTicks(int64_t numTicks) const override;
 };
 
 } // namespace inet
 
-#endif // ifndef __INET_SettableGranularityClock_H
+#endif // ifndef __INET_LINEAROSCILLATOR_H
 

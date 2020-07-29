@@ -24,14 +24,12 @@ namespace inet {
 /**
  * Models a settable clock with a constant clock drift rate.
  */
-class INET_API SettableLinearClock : public LinearClock, public IScriptable
+class INET_API SettableLinearClock : public LinearClock, public IScriptable, public cListener
 {
   protected:
     std::vector<ClockEvent *> events;
 
   protected:
-    virtual void rescheduleEvents(clocktime_t clockDelta);
-
     // IScriptable implementation
     virtual void processCommand(const cXMLElement& node) override;
 
@@ -40,10 +38,11 @@ class INET_API SettableLinearClock : public LinearClock, public IScriptable
     virtual void scheduleClockEventAfter(clocktime_t delay, ClockEvent *event) override;
     virtual ClockEvent *cancelClockEvent(ClockEvent *event) override;
 
-    virtual void setDriftRate(double newDriftRate);
     virtual void setClockTime(clocktime_t time);
 
     virtual void handleClockEventOccured(ClockEvent *event) override;
+
+    virtual void receiveSignal(cComponent *source, int signal, cObject *obj, cObject *details) override;
 };
 
 } // namespace inet

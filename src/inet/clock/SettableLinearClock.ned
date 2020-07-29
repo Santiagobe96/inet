@@ -18,7 +18,7 @@ package inet.clock;
 //
 // Models a settable clock where the drift rate is constant.
 //
-simple SettableLinearClock extends LinearClock
+module SettableLinearClock extends LinearClock
 {
     parameters:
         @class(SettableLinearClock);

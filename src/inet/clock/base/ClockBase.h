@@ -31,30 +31,34 @@ class INET_API ClockBase : public cSimpleModule, public IClock
         return target;
     }
 
+    /**
+     * Returns the clock time for the specified future simulation time according
+     * to the current state of the clock. This method implements a monotonic
+     * function with respect to the simulation time argument. It's allowed to
+     * return a different value for the same argument value if the clock is set
+     * between calls. The time argument must be greater than equal to the current
+     * simulation time, otherwise an error is raised.
+     */
+    virtual clocktime_t computeClockTimeFromSimTime(simtime_t time) const = 0;
+
+    /**
+     * Returns the simulation time for the specified future clock time according
+     * to the current state of the clock. This method implements a monotonic
+     * function with respect to the clock time argument. It's allowed to return
+     * a different value for the same argument value if the clock is set between
+     * calls. The time argument must be greater than equal to the current clock
+     * time, otherwise an error is raised.
+     */
+    virtual simtime_t computeSimTimeFromClockTime(clocktime_t time) const = 0;
+
   public:
-    /**
-     * Returns the clock time for the specified simulation time according to the
-     * current state of the clock. This method implements a monotonic function
-     * with respect to the simulation time argument. It's allowed to return a
-     * different value for the same argument value if the clock is set between
-     * calls.
-     */
-    virtual clocktime_t computeClockTimeFromSimTime(simtime_t t) const = 0;
-
-    /**
-     * Returns the simulation time for the specified clock time according to the
-     * current state of the clock. It's allowed to return a different value for
-     * the same argument value if the clock is set.
-     */
-    virtual simtime_t computeSimTimeFromClockTime(clocktime_t t) const = 0;
-
     virtual clocktime_t getClockTime() const override;
-    virtual clocktime_t convertSimTime2ClockTime(simtime_t time) const override;
-    virtual simtime_t convertClockTime2SimTime(clocktime_t time) const override;
-    virtual void scheduleClockEventAt(clocktime_t t, ClockEvent *msg) override;
-    virtual void scheduleClockEventAfter(clocktime_t t, ClockEvent *msg) override;
-    virtual ClockEvent *cancelClockEvent(ClockEvent *msg) override;
-    virtual void handleClockEventOccured(ClockEvent *msg) override;
+    virtual clocktime_t convertIntervalToClockTime(simtime_t time) const override;
+    virtual simtime_t convertClockTimeToInterval(clocktime_t time) const override;
+    virtual void scheduleClockEventAt(clocktime_t time, ClockEvent *event) override;
+    virtual void scheduleClockEventAfter(clocktime_t time, ClockEvent *event) override;
+    virtual ClockEvent *cancelClockEvent(ClockEvent *event) override;
+    virtual void handleClockEventOccured(ClockEvent *event) override;
 };
 
 } // namespace inet

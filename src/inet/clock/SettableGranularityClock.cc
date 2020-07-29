@@ -67,26 +67,14 @@ void SettableGranularityClock::rescheduleTimers(clocktime_t clockDelta)
     }
 }
 
-void SettableGranularityClock::setDriftRate(double newDriftRate)
-{
-    simtime_t atSimtime = simTime();
-    clocktime_t nowClock = LinearClock::computeClockTimeFromSimTime(atSimtime);
-    EV_DEBUG << "set driftRate from " << driftRate << " to " << newDriftRate << " at simtime " << atSimtime << ", clock " << nowClock << endl;
-    // modify 'origin' to current values before change the driftRate
-    origin.simtime = atSimtime;
-    origin.clocktime = nowClock;
-    driftRate = newDriftRate;
-    rescheduleTimers(CLOCKTIME_ZERO);
-}
-
 void SettableGranularityClock::setClockTime(clocktime_t t)
 {
     clocktime_t oldClock = getClockTime();
     simtime_t atSimtime = computeSimTimeFromClockTime(oldClock);
     t = granularize(t);
     EV_DEBUG << "set clock time from " << oldClock << " to " << t << " at simtime " << atSimtime << endl;
-    origin.simtime = atSimtime;
-    origin.clocktime = t;
+    originSimTime = atSimtime;
+    originClockTime = t;
     rescheduleTimers(t - oldClock);
 }
 
@@ -100,11 +88,11 @@ void SettableGranularityClock::processCommand(const cXMLElement& node)
             clocktime_t t = ClockTime::parse(clockTimeStr);
             setClockTime(t);
         }
-        if (const char *driftRateStr = node.getAttribute("driftRate")) {
-            EV_DEBUG << "processCommand: set drift rate to " << driftRateStr << endl;
-            double rate = strtod(driftRateStr, nullptr);
-            setDriftRate(rate);
-        }
+//        if (const char *driftRateStr = node.getAttribute("driftRate")) {
+//            EV_DEBUG << "processCommand: set drift rate to " << driftRateStr << endl;
+//            double rate = strtod(driftRateStr, nullptr);
+//            setDriftRate(rate);
+//        }
     }
     else
         throw cRuntimeError("invalid command node for %s at %s", getClassName(), node.getSourceLocation());

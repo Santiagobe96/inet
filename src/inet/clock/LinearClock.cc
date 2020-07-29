@@ -21,24 +21,23 @@ Define_Module(LinearClock);
 
 void LinearClock::initialize()
 {
-    origin.simtime = simTime(); // 1000
-    simtime_t timeShift = par("timeShift"); // 100 the simulation time when the clock's value is zero
-    // TODO: is this actually false? the simulation time when the clock's value is zero
-    origin.clocktime = ClockTime::from(simTime() + timeShift); // 1000 + 100 = 1100 -> when clock is 0 then simtime is 100?
-    driftRate = par("driftRate").doubleValue() / 1e6; // THERE'S A DRIFT!
-    // why not the following?
-    origin.simtime = timeShift;
-    origin.clocktime = 0;
+    simtime_t initialClockTime = par("initialClockTime");
+    originSimTime = simTime();
+    originClockTick = initialClockTime / oscillator->getNominalTickLength();
+    originClockTime = ClockTime::from(initialClockTime);
+    originClockOffset = ClockTime::from(initialClockTime - originClockTick * oscillator->getNominalTickLength());
 }
 
 clocktime_t LinearClock::computeClockTimeFromSimTime(simtime_t t) const
 {
-    return origin.clocktime + ClockTime::from((t - origin.simtime) * (1.0 + driftRate));
+    ASSERT(t >= simTime());
+    return originClockTime + originClockOffset + ClockTime::from(oscillator->computeClockTicksForInterval(t - originSimTime) * oscillator->getNominalTickLength());
 }
 
-simtime_t LinearClock::computeSimTimeFromClockTime(clocktime_t clock) const
+simtime_t LinearClock::computeSimTimeFromClockTime(clocktime_t t) const
 {
-    return origin.simtime + (clock - origin.clocktime).asSimTime() / (1.0 + driftRate);
+    ASSERT(t >= getClockTime());
+    return originSimTime + oscillator->computeIntervalForClockTicks(floor((t - originClockTime - originClockOffset).dbl() / oscillator->getNominalTickLength().dbl()));
 }
 
 } // namespace inet
